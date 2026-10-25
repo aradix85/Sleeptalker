@@ -9,7 +9,8 @@ namespace Sleeptalker.Sleeper2
     /// <summary>Warning boxes (2026-10-25; the Citizen Speaker watcher, ported):
     /// the title's slot-overwrite warning ("THIS WILL ERASE THE SAVE DATA IN THIS
     /// SLOT. CONTINUE?") and the pause menu's quit warnings ("QUIT TO MENU?
-    /// PROGRESS SINCE LAST AUTOSAVE WILL BE LOST.") spoke only their buttons. Each
+    /// PROGRESS SINCE LAST AUTOSAVE WILL BE LOST.") spoke only their buttons, and
+    /// the permadeath end screen nothing at all. Each
     /// box's own rendered text is spoken once when it opens. The boxes are held
     /// through their always-active root, which reaches them while hidden.</summary>
     internal static class WarningWatch
@@ -27,6 +28,9 @@ namespace Sleeptalker.Sleeper2
             new Box { Root = "MAIN MENU", Path = "Demo Menu/Warning Menu" },
             new Box { Root = "PAUSE", Path = "Pause Canvas/Warning Menu Quit Menu" },
             new Box { Root = "PAUSE", Path = "Pause Canvas/Warning Menu Quit Game" },
+            // The DANGEROUS run's end screen ("THE BELT FADES... Your DANGEROUS run
+            // has come to an end..." + QUIT): the Death Machine's PERMADEAD branch.
+            new Box { Root = "Letterbox Canvas", Path = "End Dead" },
         };
 
         private const float FindEvery = 1f;

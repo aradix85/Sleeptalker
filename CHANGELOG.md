@@ -34,6 +34,11 @@ the Citizen Speaker fork.
 - After the player closes a tutorial and nothing else speaks, the screen is named.
 - The drive log announces opening (tab, number of drives) and closing.
 - The options panel is announced when it opens, not at the next key.
+- The wake-up summary ends with the rig's clocks ("Clocks: ON THE RUN, 1 of 16."), so
+  cycle clocks such as THE HUNT are heard as they move.
+- The credits screen speaks its keys: Enter or Backspace skips (the SKIP button was
+  gamepad-only), Space reads the credits.
+- The DANGEROUS-run end screen ("THE BELT FADES...") is read.
 
 ### Fixes
 - Title menus: Backspace goes back (class select, difficulty, slot lists, overwrite

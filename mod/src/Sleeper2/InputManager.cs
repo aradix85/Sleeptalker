@@ -29,6 +29,9 @@ namespace Sleeptalker.Sleeper2
             if (!Input.anyKeyDown) return;
             if (!IsModKeyDown()) return;
 
+            // The credits screen owns its few keys (2026-10-25).
+            if (CreditsWatch.HandleKeys()) return;
+
             // Any mod key: the scene is settled (boot-sweep silence ends) and the
             // UI must be in gamepad mode for the keyboard flow to work.
             FocusPatch.MarkSettled();

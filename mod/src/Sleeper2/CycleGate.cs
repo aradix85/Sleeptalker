@@ -112,6 +112,14 @@ namespace Sleeptalker.Sleeper2
                     if (die != null) sb.Append(' ').Append(die);
                 }
 
+            // The rig's clocks (THE HUNT and its kin advance at the cycle's turn).
+            var clocks = ZoneTable.RigClockLines();
+            if (clocks.Count > 0)
+            {
+                sb.Append(' ').Append(Lex.T("cycle.clocks"));
+                foreach (var c in clocks) sb.Append(' ').Append(c);
+            }
+
             SpeechService.Say(sb.ToString(), Priority.Queued, "cycle");
         }
     }

@@ -664,6 +664,41 @@ namespace Sleeptalker.Sleeper2
             return sb.ToString();
         }
 
+        /// <summary>The rig display's discovered clock cards as "NAME, x of y." for
+        /// the wake-up summary (2026-10-25): cycle clocks such as THE HUNT move at
+        /// the turn of a cycle and were only heard by walking past the rig rows.
+        /// The summary may speak while the rig display is not drawn (station
+        /// side), so the card and its size variant are taken by their own active
+        /// flags (the ON and OFF again switches deactivate undiscovered cards; a
+        /// card keeps exactly one size variant active) instead of the render test.</summary>
+        public static List<string> RigClockLines()
+        {
+            var lines = new List<string>();
+            var root = GameObject.Find("Letterbox Canvas");
+            var hub = root != null ? root.transform.Find("RIG display/Clocks HUB") : null;
+            if (hub == null) return lines;
+            foreach (Transform card in hub)
+            {
+                if (!card.gameObject.activeSelf) continue;
+                PlayMakerFSM dial = null;
+                foreach (Transform child in card)
+                {
+                    if (!child.gameObject.activeSelf || !child.name.Contains("Step Clock")) continue;
+                    var fsm = child.GetComponent<PlayMakerFSM>();
+                    if (fsm != null && fsm.FsmVariables.FindFsmFloat("ClockValue") != null) { dial = fsm; break; }
+                    if (fsm != null && fsm.FsmVariables.FindFsmInt("ClockValue") != null) { dial = fsm; break; }
+                }
+                if (dial == null) continue;
+                var nameT = card.Find("Clock Name");
+                var tmp = nameT != null ? nameT.GetComponent<TMPro.TMP_Text>() : null;
+                string name = tmp != null ? Describe.TrimQuotes(SpeechService.Clean(tmp.text)) : null;
+                if (string.IsNullOrEmpty(name) || name == "CLOCK NAME") continue; // unfilled template
+                string progress = GameQueries.ClockProgress(dial);
+                lines.Add(name + (progress != null ? ", " + progress : "") + ".");
+            }
+            return lines;
+        }
+
         /// <summary>Rig clock card row: "Name, x of y." + narrative (the fused
         /// cell ruling; progress from the drawn circle).</summary>
         private static string ClockCardSpeech(Transform card)

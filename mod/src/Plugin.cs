@@ -137,6 +137,7 @@ namespace Sleeptalker
             NotificationWatch.Tick();
             WarningWatch.Tick();
             ArrivalWatch.Tick();
+            CreditsWatch.Tick();
             JournalTable.Tick();
             DialogueColumn.Tick();
             Navigator.Tick();
