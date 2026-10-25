@@ -12,17 +12,61 @@ namespace Sleeptalker.Sleeper2
     {
         /// <summary>First FSM whose owner GameObject bears this exact name; pathHint
         /// (substring of the full path) disambiguates when present.</summary>
+        // Lookup cache (2026-10-25): the scan below walks every loaded FSM
+        // component (about 5000, reading each owner's name) and ran on every mod
+        // key and on several per-frame dials. A name that matches exactly one
+        // scene FSM is held while that FSM lives; a name with several matches is
+        // never held (the scan's first match stays the answer). A miss is retried
+        // after half a second, and at once after any scene load.
+        private static readonly System.Collections.Generic.Dictionary<(string, string), PlayMakerFSM>
+            _fsmHits = new System.Collections.Generic.Dictionary<(string, string), PlayMakerFSM>();
+        private static readonly System.Collections.Generic.Dictionary<(string, string), float>
+            _fsmMissAt = new System.Collections.Generic.Dictionary<(string, string), float>();
+        private const float FsmMissRetry = 0.5f;
+        private static bool _fsmCacheHooked;
+
         public static PlayMakerFSM FindFsm(string ownerName, string pathHint = null)
         {
+            if (!_fsmCacheHooked)
+            {
+                _fsmCacheHooked = true;
+                UnityEngine.SceneManagement.SceneManager.sceneLoaded += (s, m) => _fsmMissAt.Clear();
+            }
+            var key = (ownerName, pathHint);
+            if (_fsmHits.TryGetValue(key, out var hit))
+            {
+                if (hit != null && hit.gameObject != null && hit.gameObject.scene.IsValid())
+                    return hit;
+                _fsmHits.Remove(key);
+            }
+            if (_fsmMissAt.TryGetValue(key, out float missed)
+                && Time.unscaledTime - missed < FsmMissRetry)
+                return null;
+            var found = ScanFsm(ownerName, pathHint, out bool unique);
+            if (found == null) _fsmMissAt[key] = Time.unscaledTime;
+            else
+            {
+                _fsmMissAt.Remove(key);
+                if (unique) _fsmHits[key] = found;
+            }
+            return found;
+        }
+
+        private static PlayMakerFSM ScanFsm(string ownerName, string pathHint, out bool unique)
+        {
+            PlayMakerFSM first = null;
+            unique = false;
             foreach (var fsm in Resources.FindObjectsOfTypeAll<PlayMakerFSM>())
             {
                 if (fsm == null || fsm.gameObject == null) continue;
                 if (!fsm.gameObject.scene.IsValid()) continue;
                 if (fsm.gameObject.name != ownerName) continue;
                 if (pathHint != null && !Util.PathOf(fsm.gameObject).Contains(pathHint)) continue;
-                return fsm;
+                if (first != null) { unique = false; return first; }
+                first = fsm;
+                unique = true;
             }
-            return null;
+            return first;
         }
 
         // ---------- Gamepad-mode enforcement (CS1 idiom; CS2 Gamepad Manager

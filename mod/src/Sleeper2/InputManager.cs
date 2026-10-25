@@ -34,6 +34,12 @@ namespace Sleeptalker.Sleeper2
             FocusPatch.MarkSettled();
             GameQueries.EnsureGamepadMode();
 
+            // An advancing key in a live conversation: the next line answers it
+            // (spoken at once instead of queued behind the old line, 2026-10-25).
+            if (ConversationEvents.ConversationActive && !DialogueColumn.InHistory
+                && !TutorialReader.Active() && IsAdvanceKey())
+                DialogueState.NoteAdvance();
+
             // The F1 key sheet owns the table grammar while open (owner
             // design 2026-08-03); a foreign key retires it silently and
             // falls through to its owner below.
@@ -172,6 +178,14 @@ namespace Sleeptalker.Sleeper2
             // (Travel Confirm, Crew, Leave Contract, blockers) stand it down via
             // the Active gate — their focus reads carry them (D8).
             if (MapTable.Active() && MapTable.HandleKeys()) return;
+            if ((Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)
+                 || Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.DownArrow)
+                 || Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.RightArrow))
+                && MapTable.TravelKeyGuard())
+            {
+                SpeechService.Say(Lex.T("map.travelling"), Priority.Immediate, "nav");
+                return;
+            }
 
             // Character window: the skills + push table owns the keys; the
             // shared Upgrade Confirm Window stands it down (native focus).
@@ -236,6 +250,10 @@ namespace Sleeptalker.Sleeper2
                 // the V-row commit exits the table before arming, so the
                 // second press needs this rung; P remains the twin).
                 if (PushFlow.ModArmed()) { PushFlow.Key(); return; }
+                // The title's press-start gate after a quit has no selection: the
+                // game takes this Enter itself, so "Nothing focused." was a false
+                // alarm right before the menu spoke (2026-10-25).
+                if (Navigator.Current() == null && ModeModel.Current() == Mode.Title) return;
                 Navigator.ActivateCurrent();
                 return;
             }
@@ -268,6 +286,11 @@ namespace Sleeptalker.Sleeper2
             if (PushFlow.CancelArm()) return;
             switch (ModeModel.Current())
             {
+                case Mode.Title:
+                    if (TitleFlow.Back()) return;
+                    SpeechService.Say(Lex.T("title.no-back"), Priority.Immediate, "nav");
+                    return;
+
                 case Mode.Pause:
                     // The pause menu's own Back/Esc machinery is native.
                     Plugin.Log.LogInfo("[Input] Backspace under pause: Esc path is native");
@@ -340,6 +363,14 @@ namespace Sleeptalker.Sleeper2
             KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3, KeyCode.Alpha4, KeyCode.Alpha5,
             KeyCode.Alpha6, KeyCode.Alpha7, KeyCode.Alpha8, KeyCode.Alpha9,
         };
+
+        private static bool IsAdvanceKey()
+        {
+            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) return true;
+            for (int i = 0; i < 9; i++)
+                if (Input.GetKeyDown(KeyCode.Alpha1 + i)) return true;
+            return false;
+        }
 
         private static bool IsModKeyDown()
         {

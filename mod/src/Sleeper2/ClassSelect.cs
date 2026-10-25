@@ -32,6 +32,16 @@ namespace Sleeptalker.Sleeper2
         private static float _nameAt = -1f;
         private static float _deadEndCheckAt = -1f;
         private static string _classAtSwap;
+        /// <summary>The class whose landing was already spoken at the key press
+        /// (2026-10-25), so the carousel's own arrival does not read it again.</summary>
+        private static string _spokenAtKey;
+        private static float _swapSpokenAt = -10f;
+
+        /// <summary>FocusPatch: the CONFIRM CLASS re-selection the carousel makes
+        /// after a slide we already announced is not news.</summary>
+        public static bool SuppressConfirmFocus(GameObject selected)
+            => selected != null && selected.name == "Choose Class"
+               && Time.unscaledTime - _swapSpokenAt < 1.5f;
 
         private static readonly string[] ClassStates = { "OPERATOR", "MACHINIST", "EXTRACTOR" };
 
@@ -58,8 +68,10 @@ namespace Sleeptalker.Sleeper2
                 // scene load) must not speak — only entries while the screen is up.
                 if (!Active()) return;
                 _cursor = 0;
-                _nameAt = Time.unscaledTime + NameDefer;
                 _deadEndCheckAt = -1f;
+                if (state == _spokenAtKey) { _spokenAtKey = null; return; }
+                _spokenAtKey = null;
+                _nameAt = Time.unscaledTime + NameDefer;
             });
         }
 
@@ -72,15 +84,118 @@ namespace Sleeptalker.Sleeper2
 
         // ---------- Left/Right: carousel swap ----------
 
+        /// <summary>Left/Right (2026-10-25): the destination is known from the
+        /// carousel FSM's own transitions at the key press, so it is spoken then
+        /// instead of after the slide. An edge (no transition for the event) says
+        /// so at once; a press mid-slide says where the slide is heading.</summary>
         public static void Swap(int direction)
         {
             var fsm = GameQueries.FindFsm("Moving Panel", "Character Select");
             if (fsm == null) return;
             string state = fsm.ActiveStateName;
-            if (!IsClassState(state)) return; // mid-transition: let it finish
+            if (!IsClassState(state))
+            {
+                // Mid-transition: the game ignores the press; say where it lands.
+                string heading = Destination(fsm, state);
+                if (heading != null) SpeakLanding(heading, "");
+                return;
+            }
+            string ev = direction < 0 ? "LEFT" : "RIGHT";
+            string target = Neighbour(fsm, state, ev, out bool known);
+            if (known && target == null)
+            {
+                SpeakLanding(state, direction < 0 ? "First class. " : "Last class. ");
+                return;
+            }
             _classAtSwap = state;
-            fsm.SendEvent(direction < 0 ? "LEFT" : "RIGHT");
+            fsm.SendEvent(ev);
+            if (target != null && Destination(fsm, fsm.ActiveStateName) == target)
+            {
+                _cursor = 0;
+                _nameAt = -1f;
+                SpeakLanding(target, "");
+                _spokenAtKey = target;
+                return;
+            }
+            // Unknown carousel shape: the old path (landing read, dead-end check).
             _deadEndCheckAt = Time.unscaledTime + DeadEndAfter;
+        }
+
+        /// <summary>The class a state is, or the class its FINISHED leads to (the
+        /// carousel's tween states).</summary>
+        private static string Destination(PlayMakerFSM fsm, string stateName)
+        {
+            if (stateName == null) return null;
+            if (IsClassState(stateName)) return stateName;
+            var st = fsm.Fsm.GetState(stateName);
+            if (st == null) return null;
+            foreach (var t in st.Transitions)
+                if (t.EventName == "FINISHED" && IsClassState(t.ToState)) return t.ToState;
+            return null;
+        }
+
+        /// <summary>Where LEFT/RIGHT leads from a class state. known=false when the
+        /// state cannot be read (then the old dead-end check decides).</summary>
+        private static string Neighbour(PlayMakerFSM fsm, string classState, string ev, out bool known)
+        {
+            known = false;
+            var st = fsm.Fsm.GetState(classState);
+            if (st == null) return null;
+            known = true;
+            foreach (var t in st.Transitions)
+            {
+                if (t.EventName != ev) continue;
+                string d = Destination(fsm, t.ToState);
+                if (d == null) known = false; // a shape this reader does not know
+                return d;
+            }
+            return null;
+        }
+
+        /// <summary>A landing read: the class's top row (name + description, the
+        /// owner's landing ruling) with its place in the carousel.</summary>
+        private static void SpeakLanding(string cls, string prefix)
+        {
+            _swapSpokenAt = Time.unscaledTime;
+            var panel = PanelFor(cls);
+            string name = (panel != null ? TextOf(panel.Find("Class Name")) : null) ?? cls;
+            string desc = panel != null ? TextOf(panel.Find("DESC")) : null;
+            string pos = Position(cls);
+            SpeechService.Say(prefix + name + (pos != null ? ", " + pos : "") + "."
+                + (desc != null ? " " + desc : ""), Priority.Immediate, "class");
+        }
+
+        /// <summary>The carousel panel showing this class, matched by rendered Class
+        /// Name (the MACHINST object-name wart).</summary>
+        private static Transform PanelFor(string cls)
+        {
+            var root = GameObject.Find(Root);
+            var movingPanel = root != null ? root.transform.Find("Moving Panel") : null;
+            if (movingPanel == null) return null;
+            foreach (Transform child in movingPanel)
+            {
+                var nameText = TextOf(child.Find("Class Name"));
+                if (nameText != null && nameText.Equals(cls, System.StringComparison.OrdinalIgnoreCase))
+                    return child;
+            }
+            return null;
+        }
+
+        /// <summary>"class N of 3", counted from the left by the panels' own layout,
+        /// so Left always counts down. Null when the layout cannot be read.</summary>
+        private static string Position(string cls)
+        {
+            var self = PanelFor(cls);
+            if (self == null || self.parent == null) return null;
+            int rank = 1, total = 0;
+            foreach (Transform child in self.parent)
+            {
+                string n = TextOf(child.Find("Class Name"));
+                if (n == null || !IsClassState(n.ToUpperInvariant())) continue;
+                total++;
+                if (child != self && child.localPosition.x < self.localPosition.x) rank++;
+            }
+            return total > 1 ? "class " + rank + " of " + total : null;
         }
 
         // ---------- Up/Down: row walk + confirm handoff ----------
@@ -100,6 +215,7 @@ namespace Sleeptalker.Sleeper2
                 var confirm = GameObject.Find(Root + "/Choose Class");
                 if (confirm != null)
                 {
+                    _swapSpokenAt = -10f; // our own landing on it always speaks
                     Navigator.Select(confirm); // announces via the focus channel
                     return;
                 }
@@ -130,14 +246,8 @@ namespace Sleeptalker.Sleeper2
                 _nameAt = -1f;
                 // Owner ruling: a landing (screen load or swap) reads the full top
                 // row — name + description — with the cursor already on it.
-                var rows = BuildRows();
-                if (rows.Count > 0)
-                    SpeechService.Say(rows[0], Priority.Immediate, "class");
-                else
-                {
-                    string cls = CurrentClass();
-                    if (cls != null) SpeechService.Say(cls + ".", Priority.Immediate, "class");
-                }
+                string cls = CurrentClass();
+                if (cls != null) SpeakLanding(cls, "");
             }
 
             if (_deadEndCheckAt >= 0 && Time.unscaledTime >= _deadEndCheckAt)
@@ -145,7 +255,7 @@ namespace Sleeptalker.Sleeper2
                 _deadEndCheckAt = -1f;
                 var fsm = GameQueries.FindFsm("Moving Panel", "Character Select");
                 if (fsm != null && fsm.ActiveStateName == _classAtSwap)
-                    SpeechService.Say(_classAtSwap + ".", Priority.Immediate, "class");
+                    SpeakLanding(_classAtSwap, "");
             }
         }
 

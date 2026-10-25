@@ -87,6 +87,8 @@ namespace Sleeptalker
                 JournalTable.InvalidateScene();
                 TutorialReader.OnSceneChanged();
                 StationCensus.OnSceneChanged();
+                NotificationWatch.OnSceneChanged();
+                WarningWatch.OnSceneChanged();
             };
 
             _input = new InputManager();
@@ -124,6 +126,7 @@ namespace Sleeptalker
             DiceFlow.Tick();
             CharacterTable.Tick();
             GuideReader.Tick();
+            OptionsReview.Tick();
             LocationTable.Tick();
             TopBarTable.Tick();
             ActionOutcomes.Tick();
@@ -131,6 +134,9 @@ namespace Sleeptalker
             Vitals.Tick();
             CycleGate.Tick();
             StationCensus.Tick();
+            NotificationWatch.Tick();
+            WarningWatch.Tick();
+            ArrivalWatch.Tick();
             JournalTable.Tick();
             DialogueColumn.Tick();
             Navigator.Tick();

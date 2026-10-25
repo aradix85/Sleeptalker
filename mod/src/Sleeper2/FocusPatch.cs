@@ -160,6 +160,14 @@ namespace Sleeptalker.Sleeper2
             // parking, not news; it must not interject in the outcome utterance).
             if (selected.name == "Gamepad Dice Slot" && ActionOutcomes.ResolutionInFlight)
                 return;
+            // The same parking on arrival at a location: the location table has
+            // just read the card, and the slot's own read was its object name
+            // ("Gamepad Dice Slot", 2026-10-25).
+            if (selected.name == "Gamepad Dice Slot" && ModeModel.Current() == Mode.ActionView)
+                return;
+            // The commit button the slotted line just named ("... START ACTION.").
+            if (selected.name == "Dice Slot Button" && Time.unscaledTime - DiceFlow.SlottedSpokeAt < 1f)
+                return;
 
             // CS1: the game re-selects Continue after every dialogue advance — never
             // informative. CS2 dialogue path is the same DS layer; carried, verify live.
@@ -199,6 +207,14 @@ namespace Sleeptalker.Sleeper2
             if (!GameQueries.MapOpen() && Util.HasAncestor(selected, "Map Screen"))
             {
                 Plugin.Log.LogInfo("[Focus] closed-map echo suppressed: " + selected.name);
+                return;
+            }
+
+            // Class swap: the game re-selects CONFIRM CLASS after each slide; the
+            // swap already spoke the class, so that landing is an echo (2026-10-25).
+            if (ClassSelect.SuppressConfirmFocus(selected))
+            {
+                Plugin.Log.LogInfo("[Focus] class-swap echo suppressed: " + selected.name);
                 return;
             }
 
@@ -266,7 +282,20 @@ namespace Sleeptalker.Sleeper2
         private static string DescribeFocused(GameObject go)
         {
             string crew = CrewSelectRead(go);
-            return crew ?? ElementDescriber.Element(go, false);
+            if (crew != null) return crew;
+            // A station node's marker button whose nameplate is not drawn read as its
+            // object name, "Location Button" (2026-10-25). Speak the node's own name.
+            if (go.name == "Location Button" || go.name == "Character Button")
+            {
+                foreach (var node in StationAtlas.Build())
+                    if (node.Button == go && !string.IsNullOrEmpty(node.Name))
+                        return node.Name;
+                string plain = ElementDescriber.Element(go, false);
+                // Only the object name to offer: nothing worth saying.
+                if (plain == null || plain.StartsWith(go.name)) return null;
+                return plain;
+            }
+            return ElementDescriber.Element(go, false);
         }
 
         /// <summary>The crew-selection dossier read (owner ruling 2026-08-02:

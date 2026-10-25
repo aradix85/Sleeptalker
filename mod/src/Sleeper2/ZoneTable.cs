@@ -124,6 +124,10 @@ namespace Sleeptalker.Sleeper2
             // re-activation replays the resting state.
             foreach (var state in new[] { "+ FUEL", "+ SUPPLIES", "+ CRYO" })
                 FsmSignals.Subscribe(null, state, OnTaskDial);
+            // A row move drops the late facet read still queued for the row left
+            // behind, so it cannot describe the wrong node after the new row's read
+            // (2026-10-25).
+            Table.OnRowMoveStart = () => SpeechService.FlushSource("zone");
             Table.OnRowArrive = (prev, row) =>
             {
                 var nodes = Nodes();
@@ -196,6 +200,15 @@ namespace Sleeptalker.Sleeper2
                 // unambiguous flag the game's own click path reads too.
                 // So: no selection opinion at all — ask the button.
                 var refusal = CommitRefusal(button);
+                if (refusal == "zone.commit.offscreen")
+                {
+                    // The camera is still on its way (the node's contents draw when
+                    // the pan lands): hold the Enter and press it then, instead of
+                    // refusing a press the player made a moment early (2026-10-25).
+                    _heldCommit = button;
+                    _heldCommitUntil = Time.unscaledTime + Timing.CommitEnableWait;
+                    return;
+                }
                 if (refusal != null)
                 {
                     Table.Say(Lex.T(refusal));
@@ -221,6 +234,7 @@ namespace Sleeptalker.Sleeper2
 
         public static bool HandleKeys()
         {
+            _heldCommit = null; // any new key replaces a held Enter
             if (!_entered)
             {
                 // First entry: start the walk where the camera already is — the
@@ -228,8 +242,44 @@ namespace Sleeptalker.Sleeper2
                 _entered = true;
                 _enteredRigSide = GameQueries.RigSide();
                 Table.Reset(RowOfClosest());
+                // The first Up/Down reads that starting row instead of stepping
+                // past it unheard (2026-10-25).
+                if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.DownArrow))
+                {
+                    Table.MoveRow(0);
+                    return true;
+                }
             }
             return Table.HandleKeys();
+        }
+
+        private static GameObject _heldCommit;
+        private static float _heldCommitUntil;
+
+        /// <summary>A held Enter fires as soon as its node's button is drawn and
+        /// accepts activation; past the wait it says why nothing happened.</summary>
+        private static void HeldCommitTick()
+        {
+            if (_heldCommit == null) return;
+            var button = _heldCommit;
+            if (!Active())
+            {
+                // Something else took the screen (a tutorial, a scene): never press
+                // underneath it; drop the held Enter once its wait is over.
+                if (Time.unscaledTime >= _heldCommitUntil) _heldCommit = null;
+                return;
+            }
+            if (CommitRefusal(button) == null)
+            {
+                _heldCommit = null;
+                _driveEchoUntil = Time.unscaledTime + 1.5f;
+                Navigator.Click(button);
+                return;
+            }
+            if (Time.unscaledTime < _heldCommitUntil) return;
+            _heldCommit = null;
+            Plugin.Log.LogWarning("[Zone] held commit timed out at " + button.name + " — capture");
+            Table.Say(Lex.T("zone.commit.moving"));
         }
 
         private static bool _enteredRigSide;
@@ -242,9 +292,11 @@ namespace Sleeptalker.Sleeper2
         /// scene goes away.</summary>
         public static void Tick()
         {
+            HeldCommitTick();
             VerifyTick();
             RowWatchTick();
             TaskAnnounceTick();
+            SideTick();
             if (!_entered) return;
             var mode = ModeModel.Current();
             bool onZoneFloor = mode == Mode.Station || mode == Mode.RigRooms;
@@ -257,8 +309,29 @@ namespace Sleeptalker.Sleeper2
                 ExitTable();
         }
 
+        private static int _side = -1; // -1 unknown, 0 station, 1 rig
+
+        /// <summary>The station/rig swap is named when it happens (2026-10-25: G and
+        /// Enter on THE RIG were answered by a stray marker focus, or silence).</summary>
+        private static void SideTick()
+        {
+            var mode = ModeModel.Current();
+            if (mode != Mode.Station && mode != Mode.RigRooms)
+            {
+                if (mode == Mode.Title || mode == Mode.Travel) _side = -1;
+                return;
+            }
+            int side = mode == Mode.RigRooms ? 1 : 0;
+            if (side == _side) return;
+            bool known = _side >= 0;
+            _side = side;
+            if (!known) return; // first sighting after a load: the arrival line covers it
+            SpeechService.Say(Lex.T(side == 1 ? "mode.rigrooms" : "mode.station") + ".",
+                Priority.Immediate, "zone");
+        }
+
         /// <summary>Scene teardown: full exit (containers are gone).</summary>
-        public static void OnSceneChanged() => ExitTable();
+        public static void OnSceneChanged() { ExitTable(); _side = -1; }
 
         // ---------- Camera follow (D17 single-write + settle verification) ----------
 
