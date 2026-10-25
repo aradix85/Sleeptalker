@@ -89,6 +89,7 @@ namespace Sleeptalker
                 StationCensus.OnSceneChanged();
                 NotificationWatch.OnSceneChanged();
                 WarningWatch.OnSceneChanged();
+                ItemWatch.OnSceneChanged();
             };
 
             _input = new InputManager();
@@ -138,6 +139,7 @@ namespace Sleeptalker
             WarningWatch.Tick();
             ArrivalWatch.Tick();
             CreditsWatch.Tick();
+            ItemWatch.Tick();
             JournalTable.Tick();
             DialogueColumn.Tick();
             Navigator.Tick();

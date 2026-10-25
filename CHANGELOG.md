@@ -39,6 +39,12 @@ the Citizen Speaker fork.
 - The credits screen speaks its keys: Enter or Backspace skips (the SKIP button was
   gamepad-only), Space reads the credits.
 - The DANGEROUS-run end screen ("THE BELT FADES...") is read.
+- Item changes outside an action (conversation rewards, contract pay) are spoken from the
+  inventory strip's own counts ("RAW SCRAP plus 2, now 2."); outcomes, pushes and the
+  cycle transition keep voicing their own.
+- Out-of-reach map rows give the game's own requirement words ("Debris field, HAZNAV
+  required.", "Patrolled territory, SPOOF TRANSPONDER required.", "Radiation,
+  impassable hazard.", "Blockade in effect.").
 
 ### Fixes
 - Title menus: Backspace goes back (class select, difficulty, slot lists, overwrite
