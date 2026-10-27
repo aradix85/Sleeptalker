@@ -21,6 +21,10 @@ the Citizen Speaker fork.
   gamepad, and the glyph was dropped, so it read "CLICK TO START" or "PRESS TO START".
 - The first arrow at the title no longer speaks the button twice: the game re-selects it
   when the input mode switches to gamepad, in the same frame as the dead-end repeat.
+- Class select: a Left/Right press during the slide is no longer lost. The game ignores
+  input mid-slide, so a quick second press spoke the same class again. The mod now
+  speaks the class the press asks for and steps there with the carousel's own event once
+  it rests.
 
 ### Faster answers to keys
 - A dialogue line the player asked for (Enter on Continue, a choice by Enter or number)

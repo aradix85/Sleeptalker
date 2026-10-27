@@ -37,6 +37,11 @@ namespace Sleeptalker.Sleeper2
         private static string _spokenAtKey;
         private static float _swapSpokenAt = -10f;
 
+        /// <summary>A press made while the carousel slides (2026-10-27): the game ignores
+        /// it, so the mod keeps the class it asked for, speaks it at the press, and steps
+        /// there with the carousel's own event once it rests (Tick).</summary>
+        private static string _queuedTarget;
+
         /// <summary>FocusPatch: the CONFIRM CLASS re-selection the carousel makes
         /// after a slide we already announced is not news.</summary>
         public static bool SuppressConfirmFocus(GameObject selected)
@@ -69,6 +74,8 @@ namespace Sleeptalker.Sleeper2
                 if (!Active()) return;
                 _cursor = 0;
                 _deadEndCheckAt = -1f;
+                // A queued press is still stepping: a class it passes is not news.
+                if (_queuedTarget != null && state != _queuedTarget) return;
                 if (state == _spokenAtKey) { _spokenAtKey = null; return; }
                 _spokenAtKey = null;
                 _nameAt = Time.unscaledTime + NameDefer;
@@ -93,14 +100,28 @@ namespace Sleeptalker.Sleeper2
             var fsm = GameQueries.FindFsm("Moving Panel", "Character Select");
             if (fsm == null) return;
             string state = fsm.ActiveStateName;
-            if (!IsClassState(state))
+            string ev = direction < 0 ? "LEFT" : "RIGHT";
+            if (!IsClassState(state) || _queuedTarget != null)
             {
-                // Mid-transition: the game ignores the press; say where it lands.
+                // Mid-transition the game ignores the press. Count it from where the
+                // slide is heading (or the class already queued), speak that class
+                // now, and step there once the carousel rests (Tick).
                 string heading = Destination(fsm, state);
-                if (heading != null) SpeakLanding(heading, "");
+                if (heading == null) return;
+                string from = _queuedTarget ?? heading;
+                string next = Neighbour(fsm, from, ev, out _);
+                if (next == null)
+                {
+                    SpeakLanding(from, direction < 0 ? "First class. " : "Last class. ");
+                    return;
+                }
+                _queuedTarget = next == heading ? null : next;
+                _cursor = 0;
+                _nameAt = -1f;
+                _spokenAtKey = next;
+                SpeakLanding(next, "");
                 return;
             }
-            string ev = direction < 0 ? "LEFT" : "RIGHT";
             string target = Neighbour(fsm, state, ev, out bool known);
             if (known && target == null)
             {
@@ -239,8 +260,34 @@ namespace Sleeptalker.Sleeper2
             return true;
         }
 
+        /// <summary>Does repeating this event from a class reach the target?</summary>
+        private static bool Reaches(PlayMakerFSM fsm, string from, string ev, string target)
+        {
+            string cur = from;
+            for (int i = 0; i < ClassStates.Length && cur != null; i++)
+            {
+                cur = Neighbour(fsm, cur, ev, out _);
+                if (cur == target) return true;
+            }
+            return false;
+        }
+
         public static void Tick()
         {
+            if (_queuedTarget != null)
+            {
+                var fsm = Active() ? GameQueries.FindFsm("Moving Panel", "Character Select") : null;
+                string st = fsm != null ? fsm.ActiveStateName : null;
+                if (fsm == null || st == _queuedTarget) _queuedTarget = null;
+                else if (IsClassState(st))
+                {
+                    // Rested on the way: the next step, silently (spoken at the press).
+                    _swapSpokenAt = Time.unscaledTime;
+                    fsm.SendEvent(Reaches(fsm, st, "RIGHT", _queuedTarget) ? "RIGHT" : "LEFT");
+                    if (Destination(fsm, fsm.ActiveStateName) == st) _queuedTarget = null; // did not move
+                }
+            }
+
             if (_nameAt >= 0 && Time.unscaledTime >= _nameAt)
             {
                 _nameAt = -1f;
