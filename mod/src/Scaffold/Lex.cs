@@ -120,6 +120,7 @@ namespace Sleeptalker.Scaffold
                 { "loc.col.progress", "Progress" },
                 // Dice allocation
                 { "dice.picker", "Die picker." },
+                { "dice.none-left", "No dice left." },
                 { "dice.picker-closed", "Picker closed." },
                 { "dice.refused", "Die unavailable." },
                 { "dice.slotted", "Die slotted." },

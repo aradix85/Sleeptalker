@@ -9,6 +9,12 @@ the Citizen Speaker fork.
 
 ## Unreleased
 
+### Die picker with no dice left
+- When the die picker opens with every die spent or broken (tray and any rendered crew
+  panel), it says "Die picker. No dice left." instead of leaving the player to walk the
+  spent cursors. The game still opens the picker as it always does. Parity with the same
+  fix in the Citizen Speaker fork.
+
 ### Keys during the opening splash
 - The engine splash (the logo crawl before the title) runs for about 8 s and cannot be
   skipped; nothing is selectable. A key there said "Nothing to focus." (or nothing at all
