@@ -16,6 +16,11 @@ the Citizen Speaker fork.
   read from SplashScreen.isFinished, which the title FSM's WaitForSplashToFinish waits
   on. F1, Z and F3 keep working. The key that launched the game, landing in the first
   frames, stays silent. Same change as in the Citizen Speaker fork.
+- The title's start button says "Press Enter to start" ("Title screen. Press Enter to
+  start."). Its label is "CLICK TO START" for the mouse and "PRESS [A] TO START" for a
+  gamepad, and the glyph was dropped, so it read "CLICK TO START" or "PRESS TO START".
+- The first arrow at the title no longer speaks the button twice: the game re-selects it
+  when the input mode switches to gamepad, in the same frame as the dead-end repeat.
 
 ### Faster answers to keys
 - A dialogue line the player asked for (Enter on Continue, a choice by Enter or number)

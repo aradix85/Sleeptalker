@@ -51,6 +51,16 @@ namespace Sleeptalker.Sleeper2
             return false;
         }
 
+        /// <summary>Navigator spoke this element itself (dead-end repeat): a focus
+        /// event for the same element and text right after it is an echo.</summary>
+        public static void NoteSpoken(GameObject go, string description)
+        {
+            if (go == null || string.IsNullOrEmpty(description)) return;
+            _lastFocusId = go.GetInstanceID();
+            _lastFocusText = description;
+            _lastFocusAt = Time.unscaledTime;
+        }
+
         /// <summary>Called by Navigator (via NavSignals) immediately before it moves or
         /// sets selection — only selection changes the mod causes count as user-initiated.</summary>
         public static void NoteUserNavigation() => _userMoveExpires = Time.unscaledTime + Timing.UserMoveWindow;

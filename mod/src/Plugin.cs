@@ -62,6 +62,7 @@ namespace Sleeptalker
             ElementDescriber.Element = Describe.Element;
             NavSignals.UserNavigated = FocusPatch.NoteUserNavigation;
             NavSignals.ClearCooldown = FocusPatch.ClearCooldown;
+            NavSignals.SpokeElement = FocusPatch.NoteSpoken;
             // The real ModeModel (2026-07-31) — the 3-value stub is retired.
             Diag.ModeNameProvider = ModeModel.Name;
             Diag.StateProvider = DiagState;
