@@ -37,6 +37,20 @@ namespace Sleeptalker.Sleeper2
             FocusPatch.MarkSettled();
             GameQueries.EnsureGamepadMode();
 
+            // Engine splash (2026-10-27, CS1 parity): the logo crawl before the title
+            // owns the screen for several seconds and cannot be skipped. Nothing is
+            // selectable, so a key there said "Nothing to focus." (or nothing in the
+            // first 8 s), as if the game had hung. Say it is still loading instead;
+            // F1, Z and F3 keep working. The key that launched the game can land in
+            // the first frames: that one stays silent.
+            if (GameQueries.SplashPlaying() && !Input.GetKeyDown(KeyCode.F1)
+                && !Input.GetKeyDown(KeyCode.Z) && !Input.GetKeyDown(KeyCode.F3))
+            {
+                if (Time.frameCount > Timing.LaunchKeyFrames)
+                    SpeechService.Say("Loading, please wait.", Priority.Immediate, "nav");
+                return;
+            }
+
             // An advancing key in a live conversation: the next line answers it
             // (spoken at once instead of queued behind the old line, 2026-10-25).
             if (ConversationEvents.ConversationActive && !DialogueColumn.InHistory

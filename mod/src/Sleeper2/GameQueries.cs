@@ -10,6 +10,11 @@ namespace Sleeptalker.Sleeper2
     /// 2026-07-26 + live title probe).</summary>
     internal static class GameQueries
     {
+        /// <summary>The engine splash (the logo crawl before the title) is still on
+        /// screen. The title FSM waits on exactly this (WaitForSplashToFinish); the
+        /// crawl is unskippable and nothing is selectable until it ends.</summary>
+        public static bool SplashPlaying() => !UnityEngine.Rendering.SplashScreen.isFinished;
+
         /// <summary>First FSM whose owner GameObject bears this exact name; pathHint
         /// (substring of the full path) disambiguates when present.</summary>
         // Lookup cache (2026-10-25): the scan below walks every loaded FSM
