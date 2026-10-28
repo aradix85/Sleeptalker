@@ -9,6 +9,14 @@ the Citizen Speaker fork.
 
 ## Unreleased
 
+### "New" on visited locations
+- Station and rig rows said "New" for every location on camera, also long after a
+  visit. The New Shine object stays active on every drawn marker; the game shows or hides
+  it with the Animator bool "New?" (the Location Button FSM sets it from the Lua flag
+  `<ID>_OLD` in "Is New?" and clears it in "Set Old" on the first visit). The mod now
+  reads that bool, so "New" matches what is drawn. Falls back to the old read when a
+  marker has no such bool. Adds a reference to UnityEngine.AnimationModule.
+
 ### Die picker with no dice left
 - When the die picker opens with every die spent or broken (tray and any rendered crew
   panel), it says "Die picker. No dice left." instead of leaving the player to walk the

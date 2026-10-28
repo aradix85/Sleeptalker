@@ -375,10 +375,33 @@ namespace Sleeptalker.Sleeper2
                 if (!string.IsNullOrEmpty(desc)) sb.Append(". ").Append(desc);
             }
             sb.Append('.');
-            var shine = billboard.Find("Marker/Shine Mask/New Shine");
-            if (shine != null && shine.gameObject.activeInHierarchy)
+            if (ShineShowsNew(billboard.Find("Marker/Shine Mask/New Shine")))
                 sb.Append(' ').Append(newWord);
             return sb.ToString();
+        }
+
+        /// <summary>Does the game DRAW this marker's New Shine? The shine object
+        /// stays active on every on-camera marker; the game shows or hides it
+        /// with the Animator bool "New?" (Location Button FSM: "Is New?" sets it
+        /// from the Lua flag &lt;ID&gt;_OLD at enable, "Set Old" clears it on the
+        /// first visit). Live decode 2026-10-28: visited Docks and Trade Hall had
+        /// the shine active with New?=false and image alpha 0, so reading
+        /// activeInHierarchy alone said "New" forever. Falls back to the old
+        /// active-state read when no such Animator bool exists.</summary>
+        internal static bool ShineShowsNew(Transform shine)
+        {
+            if (shine == null || !shine.gameObject.activeInHierarchy) return false;
+            var anim = shine.GetComponent<Animator>();
+            if (anim == null || !anim.isActiveAndEnabled || anim.runtimeAnimatorController == null)
+                return true;
+            try
+            {
+                foreach (var p in anim.parameters)
+                    if (p.type == AnimatorControllerParameterType.Bool && p.name == "New?")
+                        return anim.GetBool("New?");
+            }
+            catch { }
+            return true;
         }
 
         private static string TmpOf(Transform t)
@@ -395,7 +418,7 @@ namespace Sleeptalker.Sleeper2
         internal sealed class NameFacet
         {
             public string Name;
-            public bool IsNew;      // Marker/Shine Mask/New Shine rendered
+            public bool IsNew;      // Marker/Shine Mask/New Shine drawn (ShineShowsNew)
             public bool Disabled;   // Location Button not interactable (CS1 flag ruling)
         }
 
@@ -414,8 +437,7 @@ namespace Sleeptalker.Sleeper2
             var nameNode = billboard.Find("Portrait Name");
             string live = nameNode != null ? SpeechService.Clean(TmpOf(nameNode)) : null;
             if (!string.IsNullOrEmpty(live)) facet.Name = live;
-            var shine = billboard.Find("Marker/Shine Mask/New Shine");
-            facet.IsNew = shine != null && shine.gameObject.activeInHierarchy;
+            facet.IsNew = ShineShowsNew(billboard.Find("Marker/Shine Mask/New Shine"));
             var button = node.Button != null
                 ? node.Button.GetComponent<UnityEngine.UI.Button>() : null;
             facet.Disabled = button != null && !button.interactable;
