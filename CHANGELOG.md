@@ -15,12 +15,31 @@ the Citizen Speaker fork.
   ANKHITAVISIT). Both were rows; Enter on the undrawn one held until "Still moving, press
   Enter again." forever. Twins now fold into one row that prefers the drawn variant, and
   Enter presses whichever variant the game draws, also while a held Enter waits.
-- Seen live, not yet solved: the old variant stayed in its Selected state (which never
-  re-checks its criteria) after ANKHITAVISIT turned it off, and the hideout rested in Off
-  Camera, whose visibility test uses the inactive "UI Camera", so it never drew. Fixed
-  by hand through the bridge that time (Enable to the old variant; Selected plus Location
-  Contents for the hideout). Whether the game or the mod's direct camera pan causes it is
-  open.
+
+### Waking inside a location
+- A location card can end the cycle (END CYCLE in the Darkside hideout). The game then
+  wakes the player INSIDE that location: the Cycle Controller stores it as Home Actions,
+  hides it and the Leave Button for the cycle, and its "Actions On + Save on next leave"
+  state switches both back on, but leaves Action View? false. The mod read the station
+  instead, so the player heard station rows, Backspace never pressed Leave, and the
+  location stayed open underneath: its Location Button in Location Active, the UI Camera
+  and Station Orbital Control off, its dial in Selected. No other location could draw or
+  open; the old Abandoned Unit variant stayed on top of the hideout that replaced it.
+- The Leave Button global is now the mode model's sign of an open location, and the
+  location table falls back to the open location's own group (named by its Location
+  Button in Location Active) when the render walk misses it. After such a cycle the
+  player hears the location's cards and Backspace leaves it the game's own way.
+
+### Enter on the station opened the wrong location
+- Each Location Button FSM watches the EventSystem selection, which the game's UI
+  selector keeps on the location nearest the camera centre, and Rewired's input module
+  submits that selection on Enter before the mod runs. OLD RELAY at Solheim sits low on
+  the hub, the camera never centres it, so Enter on its row opened the selector's pick,
+  OLD FABRICATOR, and the mod's own click came a frame late. Proven live: the mod's click
+  alone opened OLD RELAY. While the zone table owns the station, the native submit of a
+  keyboard Enter is now skipped (Harmony prefix on
+  RewiredStandaloneInputModule.SendSubmitEventToSelectedObject); the zone table's Commit
+  is the one press. Gamepad, Space and every other screen keep the native path.
 
 ### Conversations over the Drive Log
 - A conversation that opens while the Drive Log is open (Kadet at Bliss's Bay) left the

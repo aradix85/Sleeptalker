@@ -360,6 +360,17 @@ namespace Sleeptalker.Sleeper2
                 && state != "Idle" && state != "INIT" && state != "Quit";
         }
 
+        /// <summary>The game's Leave Button global is live: a location is open.
+        /// The location's Location Active state switches it on, the Cycle
+        /// Controller hides it for a cycle and switches it back on when the
+        /// player wakes inside, and the location's close switches it off.</summary>
+        public static bool LeaveButtonLive()
+        {
+            var v = HutongGames.PlayMaker.FsmVariables.GlobalVariables
+                .FindFsmGameObject("Leave Button");
+            return v != null && v.Value != null && v.Value.activeInHierarchy;
+        }
+
         /// <summary>Travel ride: Current Location Scene prefix "TRN" (D9 — the
         /// master scene dial, stamped by every scene's setup FSM).</summary>
         public static bool TravelScene()

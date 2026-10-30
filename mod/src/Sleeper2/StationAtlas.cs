@@ -124,7 +124,23 @@ namespace Sleeptalker.Sleeper2
                     return found;
                 }
             }
-            return found;
+            if (found != null || !GameQueries.LeaveButtonLive()) return found;
+            // Woken inside a location (ModeModel.ActionViewUp): the open
+            // location's own group, named by its Location Button resting in
+            // Location Active, when the render walk did not find it drawn.
+            foreach (var fsm in PlayMakerFSM.FsmList)
+            {
+                if (fsm == null || fsm.gameObject.name != "Location Button") continue;
+                if (fsm.ActiveStateName != "Location Active") continue;
+                var actions = fsm.FsmVariables.FindFsmGameObject("Location Actions");
+                if (actions != null && actions.Value != null && actions.Value.activeInHierarchy)
+                {
+                    LogOnce("[Atlas] open location's group taken from its Location Button: "
+                        + actions.Value.name);
+                    return actions.Value.transform;
+                }
+            }
+            return null;
         }
 
         /// <summary>Node containers by STRUCTURE, never by name (ride V1, owner
