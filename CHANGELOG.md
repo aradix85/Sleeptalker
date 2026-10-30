@@ -7,6 +7,17 @@ numbers). The guiding rule: stay as close as possible to the game's own behaviou
 its designed controls and FSM events. Several fixes are shared with the same changes in
 the Citizen Speaker fork.
 
+## Unreleased
+
+### Conversations over the Drive Log
+- A conversation that opens while the Drive Log is open (Kadet at Bliss's Bay) left the
+  game's selection on the log's quest buttons: arrows walked "MAKE REPAIRS", Enter did
+  nothing, only the number keys still answered, and J was dead in conversation mode. Now an
+  arrow or Enter whose selection sits outside the dialogue UI first lands on what the
+  conversation waits on (the first response, or CONTINUE). Enter on a lone CONTINUE also
+  advances; a response menu never picks on that anchoring press. J closes a Drive Log left
+  open under a conversation. The pause menu keeps its focus.
+
 ## 0.10.1 (2026-10-30)
 
 ### Difficulty screen as a list

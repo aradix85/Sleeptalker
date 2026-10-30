@@ -90,6 +90,32 @@ namespace Sleeptalker.Sleeper2
                     return;
             }
 
+            // Conversation focus anchor (ride 2026-10-30): a conversation that
+            // opens over the Drive Log leaves the game's selection on the log, so
+            // arrows walked quest buttons and Enter did nothing. An arrow or Enter
+            // whose selection sits outside the dialogue UI lands on what the
+            // conversation waits on instead: one press = the anchor (the pause
+            // idiom), except Enter on a lone CONTINUE, which is the advance the
+            // player meant. A response menu never picks on the anchoring press.
+            if (ConversationEvents.ConversationActive && !TutorialReader.Active()
+                && !DialogueColumn.InHistory && ModeModel.Current() == Mode.Conversation)
+            {
+                bool enterKey = Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter);
+                bool arrowKey = Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.DownArrow)
+                    || Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.RightArrow);
+                if (enterKey || arrowKey)
+                {
+                    var anchor = DialogueAnchor.Needed();
+                    if (anchor != null)
+                    {
+                        Plugin.Log.LogInfo("[Dialogue] selection outside the dialogue — anchoring on " + anchor.name);
+                        Navigator.Select(anchor);
+                        if (enterKey && !DialogueState.MenuOpen) Navigator.ActivateCurrent();
+                        return;
+                    }
+                }
+            }
+
             // Unified dialogue column (owner design 2026-08-01, D19): Up from
             // the live conversation walks the transcript back (window scrolls
             // with it); Down returns to the frontier; Enter in history re-reads.
@@ -184,8 +210,11 @@ namespace Sleeptalker.Sleeper2
                 // J joins the inventory swap set (owner ruling 2026-08-02,
                 // ride finding: the drives screen was unreachable from browse).
                 var mode = SwapOutOfInventory(ModeModel.Current());
+                // A Drive Log left open under a conversation closes with J too
+                // (ride 2026-10-30: it held the keyboard and J did nothing).
                 if (mode == Mode.DriveLog || mode == Mode.Station
-                    || mode == Mode.RigRooms || mode == Mode.ActionView)
+                    || mode == Mode.RigRooms || mode == Mode.ActionView
+                    || (mode == Mode.Conversation && DialogueAnchor.DriveLogOpen()))
                 { JournalTable.Toggle(); return; }
             }
             if (ModeModel.Current() == Mode.DriveLog && JournalTable.HandleKeys()) return;
