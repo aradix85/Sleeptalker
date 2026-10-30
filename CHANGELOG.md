@@ -9,6 +9,19 @@ the Citizen Speaker fork.
 
 ## Unreleased
 
+### Twin locations
+- A location can exist as two variants with the same name at the same position (contract
+  Darkside: "Abandoned Unit" and "Abandoned Unit 2", the hideout, swapped by
+  ANKHITAVISIT). Both were rows; Enter on the undrawn one held until "Still moving, press
+  Enter again." forever. Twins now fold into one row that prefers the drawn variant, and
+  Enter presses whichever variant the game draws, also while a held Enter waits.
+- Seen live, not yet solved: the old variant stayed in its Selected state (which never
+  re-checks its criteria) after ANKHITAVISIT turned it off, and the hideout rested in Off
+  Camera, whose visibility test uses the inactive "UI Camera", so it never drew. Fixed
+  by hand through the bridge that time (Enable to the old variant; Selected plus Location
+  Contents for the hideout). Whether the game or the mod's direct camera pan causes it is
+  open.
+
 ### Conversations over the Drive Log
 - A conversation that opens while the Drive Log is open (Kadet at Bliss's Bay) left the
   game's selection on the log's quest buttons: arrows walked "MAKE REPAIRS", Enter did
