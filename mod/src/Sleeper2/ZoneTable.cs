@@ -181,7 +181,7 @@ namespace Sleeptalker.Sleeper2
                     return;
                 }
                 if (row < 0) return;
-                var button = nodes[row].Button;
+                var button = StationAtlas.CommitButton(nodes[row]);
                 if (button == null) return;
                 // COMMIT GATE (owner build 2026-08-04, REBUILT same day on
                 // the owner's correction — "selection is not in doubt").
@@ -206,6 +206,7 @@ namespace Sleeptalker.Sleeper2
                     // the pan lands): hold the Enter and press it then, instead of
                     // refusing a press the player made a moment early (2026-10-25).
                     _heldCommit = button;
+                    _heldNode = nodes[row];
                     _heldCommitUntil = Time.unscaledTime + Timing.CommitEnableWait;
                     return;
                 }
@@ -254,6 +255,7 @@ namespace Sleeptalker.Sleeper2
         }
 
         private static GameObject _heldCommit;
+        private static StationAtlas.Node _heldNode;
         private static float _heldCommitUntil;
 
         /// <summary>A held Enter fires as soon as its node's button is drawn and
@@ -261,6 +263,9 @@ namespace Sleeptalker.Sleeper2
         private static void HeldCommitTick()
         {
             if (_heldCommit == null) return;
+            // A twin variant may be the one that draws once the camera lands.
+            var drawn = StationAtlas.CommitButton(_heldNode);
+            if (drawn != null && drawn.activeInHierarchy) _heldCommit = drawn;
             var button = _heldCommit;
             if (!Active())
             {

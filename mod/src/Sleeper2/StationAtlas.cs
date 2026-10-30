@@ -37,6 +37,9 @@ namespace Sleeptalker.Sleeper2
             public Transform CamFocus;   // authored per-node camera target (may be null)
             public float Azimuth;        // marker angle around the rig center (deg)
             public bool IsHere;          // map: root FSM in Occupied — the current location (D8)
+            /// <summary>Dial variants of this same place folded into this row (see
+            /// FoldTwins): Enter presses whichever of them the game draws.</summary>
+            public List<Node> Twins;
         }
 
         // CS1 baseline whitelist; CS2 states join per capture (unknowns log).
@@ -201,6 +204,7 @@ namespace Sleeptalker.Sleeper2
             // (Docks 133.6° … Factory Row 96.8°), and the X/Z azimuth was noise
             // (the owner's out-of-order report).
             nodes.Sort((a, b) => b.Azimuth.CompareTo(a.Azimuth));
+            nodes = FoldTwins(nodes);
             // Self-heal (throttled): an empty zone on a live floor means the
             // container cache is stale (destroyed transforms, additive-load
             // timing) — rediscover rather than stay dead.
@@ -210,6 +214,53 @@ namespace Sleeptalker.Sleeper2
                 _containersFresh = false;
             }
             return nodes;
+        }
+
+        /// <summary>One row per place (ride 2026-10-30, contract Darkside): a
+        /// location can exist as two dial variants with the same name at the same
+        /// authored position ("Abandoned Unit" and "Abandoned Unit 2", both with
+        /// their criteria met). The game draws one; the other rests in Off Camera
+        /// and never draws, so its row held Enter until "Still moving" and the
+        /// player was stuck. Twins fold into one row that prefers the drawn
+        /// variant, then one not resting in Off Camera; the folded ones ride
+        /// along in Twins so a commit can press whichever is drawn.</summary>
+        private static List<Node> FoldTwins(List<Node> nodes)
+        {
+            var keep = new List<Node>(nodes.Count);
+            foreach (var n in nodes)
+            {
+                int twin = keep.FindIndex(k => k.Name == n.Name && k.Root != null && n.Root != null
+                    && (k.Root.position - n.Root.position).sqrMagnitude < 25f);
+                if (twin < 0) { keep.Add(n); continue; }
+                var kept = keep[twin];
+                Node winner = TwinScore(n) > TwinScore(kept) ? n : kept;
+                Node loser = winner == n ? kept : n;
+                winner.Twins = winner.Twins ?? new List<Node>();
+                winner.Twins.Add(loser);
+                if (loser.Twins != null) { winner.Twins.AddRange(loser.Twins); loser.Twins = null; }
+                keep[twin] = winner;
+                LogOnce("[Atlas] variant twins at \"" + n.Name + "\": " + winner.Root.name
+                    + " (" + winner.State + ") over " + loser.Root.name + " (" + loser.State + ")");
+            }
+            return keep;
+        }
+
+        private static int TwinScore(Node n)
+        {
+            if (n.Button != null && n.Button.activeInHierarchy) return 2;
+            return n.State != "Off Camera" ? 1 : 0;
+        }
+
+        /// <summary>The button to press for this row: the node's own when drawn,
+        /// else a drawn twin's, else the node's own (still undrawn).</summary>
+        public static GameObject CommitButton(Node node)
+        {
+            if (node == null) return null;
+            if (node.Button != null && node.Button.activeInHierarchy) return node.Button;
+            if (node.Twins != null)
+                foreach (var t in node.Twins)
+                    if (t.Button != null && t.Button.activeInHierarchy) return t.Button;
+            return node.Button;
         }
 
         // ---------- Map planes (D8; the map table's provider seam) ----------
