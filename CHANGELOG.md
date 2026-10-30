@@ -31,15 +31,17 @@ the Citizen Speaker fork.
   player hears the location's cards and Backspace leaves it the game's own way.
 
 ### Enter on the station opened the wrong location
-- Each Location Button FSM watches the EventSystem selection, which the game's UI
-  selector keeps on the location nearest the camera centre, and Rewired's input module
-  submits that selection on Enter before the mod runs. OLD RELAY at Solheim sits low on
-  the hub, the camera never centres it, so Enter on its row opened the selector's pick,
-  OLD FABRICATOR, and the mod's own click came a frame late. Proven live: the mod's click
-  alone opened OLD RELAY. While the zone table owns the station, the native submit of a
-  keyboard Enter is now skipped (Harmony prefix on
-  RewiredStandaloneInputModule.SendSubmitEventToSelectedObject); the zone table's Commit
-  is the one press. Gamepad, Space and every other screen keep the native path.
+- Station rows are sorted by their angle around the rig centre, and both ends of that
+  angle moved with the camera: the marker is billboard-displaced and tilts toward it, and
+  Focus Body rides the camera's scroll (z 192.7 to -601.1 over two rows). Close
+  neighbours swapped order between rebuilds: at Solheim OLD RELAY and OLD FABRICATOR went
+  from 102.3/100.7 to 97.0/97.5 after one pan, so the row the player had just heard
+  pointed at the other node and Enter opened OLD FABRICATOR. Rows are now measured from
+  each location's authored root around a centre frozen once per scene, so the order holds
+  for the visit. Verified live: Enter on OLD RELAY opens OLD RELAY (DISENGAGE SYSTEMS).
+- Ruled out on the way, live: the game does not submit its own selection on a keyboard
+  Enter (row SUNCATCHERS, selection THE RIG, Enter opened SUNCATCHERS), so no input gate
+  was needed.
 
 ### Conversations over the Drive Log
 - A conversation that opens while the Drive Log is open (Kadet at Bliss's Bay) left the
