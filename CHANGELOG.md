@@ -45,6 +45,14 @@ the Citizen Speaker fork.
   pre-rolled values; verified live that the assist actions leave them untouched there.
   The crew actions themselves await their first live contract.
 
+### Repeatable actions
+- After an action resolves the game draws "ACTION COMPLETE" on the card while it shows
+  the outcome, even though the card takes a new die at once (its Action Controller rests
+  in Positive/Neutral/Negative Outcome, each with DiceSlotted -> Reset). Players heard
+  "complete", left the location and re-entered it to try again. The row now adds "Enter
+  to do it again." when the controller's state accepts a die; Temp Complete and Action
+  Completed (no DiceSlotted) stay without the hint.
+
 ### "New" on visited locations
 - Station and rig rows said "New" for every location on camera, also long after a
   visit. The New Shine object stays active on every drawn marker; the game shows or hides
