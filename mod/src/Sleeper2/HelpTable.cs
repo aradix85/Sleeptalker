@@ -60,6 +60,9 @@ namespace Sleeptalker.Sleeper2
             SpeechService.Say(Lex.T("help.closed"), Priority.Immediate, "help");
         }
 
+        /// <summary>Silent close for a surface that opens over the sheet (F5).</summary>
+        public static void Retire() => Open = false;
+
         /// <summary>Owns the keys while open. False = not open, or the sheet
         /// just retired silently under a foreign key (which then falls
         /// through to its real owner).</summary>

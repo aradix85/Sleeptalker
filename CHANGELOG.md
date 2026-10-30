@@ -9,6 +9,29 @@ the Citizen Speaker fork.
 
 ## Unreleased
 
+### Assist menu (F5), version 0.10.0
+- F5 opens an assist menu in the help sheet's table grammar: Up and Down walk the rows,
+  Enter performs a row, Space re-reads it, F5 or Backspace closes. It needs a loaded game
+  (not on the title, the pause menu, a cycle transition or travel).
+- Row 1, **Minimum die roll** (off, 2 to 6; Left/Right or Enter change it, saved as
+  `[Assist] MinimumDieRoll` in the config). Every die rolls through a "Roll" or
+  "Safe Roll" state whose RandomEvent picks one of six transitions named "1" to "6". A
+  Harmony postfix on `RandomEvent.GetRandomEvent` swaps a face below the minimum for a
+  uniform pick among the faces at or above it, so the game still runs its own face
+  state, stress check and render. Verified live: 12 rerolls at minimum 4, all 4 or
+  higher, no die damage.
+- The other rows reproduce the developers' hidden DEBUG MENU (`Letterbox Canvas/DEBUG
+  MENU`, inactive in release builds; its FSM decoded live). Raise every die to 6, reroll
+  every die, repair all dice (`Die1..5_Health = 3`), fill energy (`Player_Energy = 100`),
+  lower stress by 1, add 100 cryo, add 1 fuel, add 1 supplies. Dice reload through the
+  die FSM's own global "Check Variables" event (the Load From Save path, no stress check);
+  the debug menu's own repair sent that event to itself, so it never reloaded the dice.
+  Dice actions refuse while the die picker or a slotted die owns the dice, then read the
+  settled dice back. Fuel and supplies are capped by the rig's stowage, so their answer
+  comes a beat later from the value that actually landed ("No room for more. Still 5.").
+- F5 is handled before the gamepad-mode switch, so the first F5 after a load is no longer
+  talked over by a fresh focus read. Opening F5 over the F1 sheet retires the sheet.
+
 ### "New" on visited locations
 - Station and rig rows said "New" for every location on camera, also long after a
   visit. The New Shine object stays active on every drawn marker; the game shows or hides

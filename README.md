@@ -72,6 +72,14 @@ of what changed while you slept.
 F1 always opens a key table for the current screen: Up and Down walk the
 bindings, F1 or Backspace closes it.
 
+F5 opens the **assist menu**, for players who want the story without fighting
+the dice. Its first row sets a minimum die roll (off, or 2 to 6): every roll
+from then on lands between that value and 6, and the game still runs its own
+stress check on the result. The other rows are the effects of the developers'
+own hidden debug menu: raise every die to 6, reroll every die, repair all
+dice, fill energy, lower stress, add cryo, fuel or supplies. Enter performs a
+row, F5 or Backspace closes the menu.
+
 ## Keys
 
 | Key | Function |
@@ -92,6 +100,7 @@ bindings, F1 or Backspace closes it.
 | **Z** | Repeat last speech. |
 | **F1** | Contextual key table. |
 | **F3** | Write a diagnostic snapshot to the log (useful in bug reports). |
+| **F5** | Assist menu: minimum die roll and the debug-menu helpers. |
 | **Esc** | Pause (the game's own). |
 
 ## What's tested and what isn't

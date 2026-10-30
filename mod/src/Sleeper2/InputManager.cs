@@ -32,6 +32,14 @@ namespace Sleeptalker.Sleeper2
             // The credits screen owns its few keys (2026-10-25).
             if (CreditsWatch.HandleKeys()) return;
 
+            // F5 assist menu (owner request 2026-10-30): modal while open, the
+            // help sheet's shape — it owns the table grammar until closed.
+            // Ahead of the gamepad-mode switch below: that switch makes the game
+            // land a fresh selection, whose focus read talked over the menu's
+            // opening line on the first F5 after a load (ride 2026-10-30).
+            if (AssistTable.HandleKeys()) return;
+            if (Input.GetKeyDown(KeyCode.F5)) { HelpTable.Retire(); AssistTable.Toggle(); return; }
+
             // Any mod key: the scene is settled (boot-sweep silence ends) and the
             // UI must be in gamepad mode for the keyboard flow to work.
             FocusPatch.MarkSettled();
@@ -376,7 +384,7 @@ namespace Sleeptalker.Sleeper2
             KeyCode.Return, KeyCode.KeypadEnter, KeyCode.Space, KeyCode.Backspace,
             KeyCode.V, KeyCode.M, KeyCode.G, KeyCode.J, KeyCode.U, KeyCode.I, KeyCode.P,
             KeyCode.N, KeyCode.Slash,
-            KeyCode.Z, KeyCode.F1, KeyCode.F3,
+            KeyCode.Z, KeyCode.F1, KeyCode.F3, KeyCode.F5,
             KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3, KeyCode.Alpha4, KeyCode.Alpha5,
             KeyCode.Alpha6, KeyCode.Alpha7, KeyCode.Alpha8, KeyCode.Alpha9,
         };

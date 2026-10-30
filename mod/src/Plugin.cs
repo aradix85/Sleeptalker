@@ -11,7 +11,7 @@ using Priority = Sleeptalker.Scaffold.Priority;
 
 namespace Sleeptalker
 {
-    [BepInPlugin(Id, "Sleeptalker", "0.9.0")]
+    [BepInPlugin(Id, "Sleeptalker", "0.10.0")]
     public class Plugin : BaseUnityPlugin
     {
         public const string Id = "com.sleeptalker.mod";
@@ -23,6 +23,7 @@ namespace Sleeptalker
         internal static ConfigEntry<bool> ForceGamepadUI;
         internal static ConfigEntry<bool> TraceFsmSignals;
         internal static ConfigEntry<bool> TraceInput;
+        internal static ConfigEntry<int> MinimumDieRoll;
 
         private InputManager _input;
 
@@ -45,6 +46,10 @@ namespace Sleeptalker
             TraceInput = Config.Bind("Debug", "TraceInput", false,
                 "Log every mod-relevant key press and synthetic nav event live "
                 + "(always recorded in memory for the F3 incident dump regardless).");
+            MinimumDieRoll = Config.Bind("Assist", "MinimumDieRoll", 0,
+                new ConfigDescription("Every die roll lands between this value and 6. "
+                    + "0 = off (the game's own odds). Also changeable in game: F5, first row.",
+                    new AcceptableValueRange<int>(0, 6)));
 
             SpeechService.Init();
             Lex.Init();
@@ -111,8 +116,8 @@ namespace Sleeptalker
             CycleGate.Init();
             StationCensus.Init();
 
-            Log.LogInfo("Sleeptalker 0.9.0 loaded.");
-            SpeechService.Say("Sleeptalker 0.9.0.", Priority.Queued, "init");
+            Log.LogInfo("Sleeptalker 0.10.0 loaded.");
+            SpeechService.Say("Sleeptalker 0.10.0.", Priority.Queued, "init");
         }
 
         private void Update()
@@ -140,6 +145,7 @@ namespace Sleeptalker
             WarningWatch.Tick();
             ArrivalWatch.Tick();
             CreditsWatch.Tick();
+            DiceAssist.Tick();
             ItemWatch.Tick();
             JournalTable.Tick();
             DialogueColumn.Tick();
