@@ -726,6 +726,10 @@ namespace Sleeptalker.Sleeper2
             if (window == _subWindow) return;
             _subWindow = window;
             if (window == null) return;
+            // The crew selection window has its own table and opening line
+            // (CrewSelectTable, 2026-10-30): the drawn-text dump read every
+            // label in one breath, including a pre-settle "NO CREW SELECTED".
+            if (window.name == "Crew Window") return;
             string read = WindowDrawnText(window);
             // Owner ruling 2026-08-02: the crew confirm box renders only
             // "CONFIRM CREW" — the thing being confirmed (the loadout) stands
