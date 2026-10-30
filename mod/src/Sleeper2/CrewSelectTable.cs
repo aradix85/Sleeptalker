@@ -42,7 +42,8 @@ namespace Sleeptalker.Sleeper2
             RowSpeech = (r, c) => RowRead(r),
             CellSpeech = (r, c) => RowRead(r),
             SectionOf = row => row >= 0 && row < _rows.Count ? _rows[row].Section : 0,
-            SectionPrefix = s => s >= 0 && s < _groups.Count ? _groups[s] + "." : "",
+            SectionPrefix = s => s >= 0 && s < _groups.Count && _groups[s].Length > 0
+                ? _groups[s] + "." : "",
             EmptyRow = () => Lex.T("crew.table-empty"),
             EmptyCol = () => Lex.T("crew.table-empty"),
             EmptyDetail = () => Lex.T("crew.table-empty"),

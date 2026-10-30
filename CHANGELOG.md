@@ -7,43 +7,7 @@ numbers). The guiding rule: stay as close as possible to the game's own behaviou
 its designed controls and FSM events. Several fixes are shared with the same changes in
 the Citizen Speaker fork.
 
-## Unreleased
-
-### Assist menu with cheats (F5), version 0.10.0
-- **Contains cheats.** Optional and inert until used: the minimum die roll defaults to
-  off, and nothing changes unless the player presses F5 and performs a row.
-- F5 opens an assist menu in the help sheet's table grammar: Up and Down walk the rows,
-  Enter performs a row, Space re-reads it, F5 or Backspace closes. It needs a loaded game
-  (not on the title, the pause menu, a cycle transition or travel).
-- Row 1, **Minimum die roll** (off, 2 to 6; Left/Right change it, Enter confirms; saved
-  as `[Assist] MinimumDieRoll` in the config). Enter used to step the value too, so
-  confirming a 6 wrapped it back to off (first ride, 2026-10-30). Every die rolls through a "Roll" or
-  "Safe Roll" state whose RandomEvent picks one of six transitions named "1" to "6". A
-  Harmony postfix on `RandomEvent.GetRandomEvent` swaps a face below the minimum for a
-  uniform pick among the faces at or above it, so the game still runs its own face
-  state, stress check and render. Verified live: 12 rerolls at minimum 4, all 4 or
-  higher, no die damage.
-- The other rows reproduce the developers' hidden DEBUG MENU (`Letterbox Canvas/DEBUG
-  MENU`, inactive in release builds; its FSM decoded live). Raise every die to 6, reroll
-  every die, repair all dice (`Die1..5_Health = 3`), fill energy (`Player_Energy = 100`),
-  lower stress by 1, add 100 cryo, add 1 fuel, add 1 supplies. Dice reload through the
-  die FSM's own global "Check Variables" event (the Load From Save path, no stress check);
-  the debug menu's own repair sent that event to itself, so it never reloaded the dice.
-  Dice actions refuse while the die picker or a slotted die owns the dice, then read the
-  settled dice back. Fuel and supplies are capped by the rig's stowage, so their answer
-  comes a beat later from the value that actually landed ("No room for more. Still 5.").
-- When the menu cannot open it says why: paused ("Press Escape to resume first"), between
-  cycles, or travelling. It used to say "needs a loaded game" for all of them.
-- F5 is handled before the gamepad-mode switch, so the first F5 after a load is no longer
-  talked over by a fresh focus read. Opening F5 over the F1 sheet retires the sheet.
-- Crew dice: the minimum die roll covers them (their FSM rolls through the same
-  "Roll" RandomEvent over "1" to "6"), and "raise every die to 6" and "reroll every
-  die" include them while a crew panel is rendered. Their FSM is simpler (decoded live):
-  global Check Variables reloads from the Lua value `Crew<m>Die<s>`, global RollDice
-  rolls; no health, no stress check, no Reroll event. RollDice also leaves Used, so only
-  Idle crew dice are sent it. Outside a contract the persistent crew dice hold stale
-  pre-rolled values; verified live that the assist actions leave them untouched there.
-  The crew actions themselves await their first live contract.
+## 0.10.1 (2026-10-30)
 
 ### Difficulty screen as a list
 - The new-game difficulty screen walked by the game's spatial navigation, jumping between
@@ -70,6 +34,8 @@ the Citizen Speaker fork.
   slots; locked and blocked members say why instead. The window opens with "Select crew.",
   the slots and the first row, half a second after it appears so the button FSMs have
   settled. F1 lists the crew keys. Backspace stays the map's Back.
+- Verified live by the player on a real contract: walked Nia, Juni and Serafin, chose
+  Nia into slot 2, confirmed the crew.
 
 ### Repeatable actions
 - After an action resolves the game draws "ACTION COMPLETE" on the card while it shows
@@ -78,6 +44,48 @@ the Citizen Speaker fork.
   "complete", left the location and re-entered it to try again. The row now adds "Enter
   to do it again." when the controller's state accepts a die; Temp Complete and Action
   Completed (no DiceSlotted) stay without the hint.
+
+### Assist menu fixes
+- Enter on the minimum-die-roll row confirms ("Minimum die roll, 6. Saved.") instead of
+  stepping the value: confirming a 6 wrapped it back to off on the first ride. Left and
+  Right change it, and the value is saved as it changes.
+- When the menu cannot open it says why: paused ("Press Escape to resume first"), between
+  cycles, or travelling. It used to say "needs a loaded game" for all of them.
+
+## 0.10.0 (2026-10-30)
+
+### Assist menu with cheats (F5)
+- **Contains cheats.** Optional and inert until used: the minimum die roll defaults to
+  off, and nothing changes unless the player presses F5 and performs a row.
+- F5 opens an assist menu in the help sheet's table grammar: Up and Down walk the rows,
+  Enter performs a row, Space re-reads it, F5 or Backspace closes. It needs a loaded game
+  (not on the title, the pause menu, a cycle transition or travel).
+- Row 1, **Minimum die roll** (off, 2 to 6; Left/Right change it, Enter confirms; saved
+  as `[Assist] MinimumDieRoll` in the config). Every die rolls through a "Roll" or
+  "Safe Roll" state whose RandomEvent picks one of six transitions named "1" to "6". A
+  Harmony postfix on `RandomEvent.GetRandomEvent` swaps a face below the minimum for a
+  uniform pick among the faces at or above it, so the game still runs its own face
+  state, stress check and render. Verified live: 12 rerolls at minimum 4, all 4 or
+  higher, no die damage.
+- The other rows reproduce the developers' hidden DEBUG MENU (`Letterbox Canvas/DEBUG
+  MENU`, inactive in release builds; its FSM decoded live). Raise every die to 6, reroll
+  every die, repair all dice (`Die1..5_Health = 3`), fill energy (`Player_Energy = 100`),
+  lower stress by 1, add 100 cryo, add 1 fuel, add 1 supplies. Dice reload through the
+  die FSM's own global "Check Variables" event (the Load From Save path, no stress check);
+  the debug menu's own repair sent that event to itself, so it never reloaded the dice.
+  Dice actions refuse while the die picker or a slotted die owns the dice, then read the
+  settled dice back. Fuel and supplies are capped by the rig's stowage, so their answer
+  comes a beat later from the value that actually landed ("No room for more. Still 5.").
+- F5 is handled before the gamepad-mode switch, so the first F5 after a load is no longer
+  talked over by a fresh focus read. Opening F5 over the F1 sheet retires the sheet.
+- Crew dice: the minimum die roll covers them (their FSM rolls through the same
+  "Roll" RandomEvent over "1" to "6"), and "raise every die to 6" and "reroll every
+  die" include them while a crew panel is rendered. Their FSM is simpler (decoded live):
+  global Check Variables reloads from the Lua value `Crew<m>Die<s>`, global RollDice
+  rolls; no health, no stress check, no Reroll event. RollDice also leaves Used, so only
+  Idle crew dice are sent it. Outside a contract the persistent crew dice hold stale
+  pre-rolled values; verified live that the assist actions leave them untouched there.
+  The crew actions themselves await their first live contract.
 
 ### "New" on visited locations
 - Station and rig rows said "New" for every location on camera, also long after a
