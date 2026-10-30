@@ -7,7 +7,7 @@ numbers). The guiding rule: stay as close as possible to the game's own behaviou
 its designed controls and FSM events. Several fixes are shared with the same changes in
 the Citizen Speaker fork.
 
-## Unreleased
+## 0.10.2 (2026-10-30)
 
 ### Twin locations
 - A location can exist as two variants with the same name at the same position (contract
