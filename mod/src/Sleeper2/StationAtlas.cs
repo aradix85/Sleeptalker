@@ -66,6 +66,22 @@ namespace Sleeptalker.Sleeper2
         {
             _containersFresh = false;
             _groupContainersFresh = false;
+            _orderCenter = null;
+        }
+
+        /// <summary>The fixed point the row order is measured around, taken from
+        /// the rig centre once per scene. Focus Body itself rides the camera's
+        /// scroll (live: z 192.7 -> -601.1 over two rows), so a live centre let
+        /// close neighbours swap order mid-walk (THE RIG and OLD FABRICATOR sit
+        /// 0.3 degrees apart at Solheim). Frozen, the order holds for the visit.</summary>
+        private static Vector3? _orderCenter;
+
+        private static Vector3? OrderCenter()
+        {
+            if (_orderCenter.HasValue) return _orderCenter;
+            var c = RigCenter();
+            if (c != null) _orderCenter = c.position;
+            return _orderCenter;
         }
 
         private static readonly List<Transform> GroupContainers = new List<Transform>();
@@ -401,8 +417,16 @@ namespace Sleeptalker.Sleeper2
             var button = marker != null ? marker.Find("Location Button") : null;
             if (button == null) return null;
 
-            var pos = marker.position;
-            var center = map ? null : RigCenter(); // the station rig is not the map's frame
+            // Order by the ROOT, never the marker (ride 2026-10-30, Solheim): the
+            // marker is billboard-displaced and tilts with the camera, so its
+            // angle moved with every pan. OLD RELAY and OLD FABRICATOR sit 1.6°
+            // apart and swapped order after a pan (102.3/100.7 -> 97.0/97.5);
+            // the row the player had just heard then pointed at the other node,
+            // and Enter opened the wrong location. The root is the authored,
+            // camera-independent position (PanTo anchors on it for the same
+            // reason), so the row order holds still.
+            var pos = root.position;
+            Vector3? center = map ? null : OrderCenter(); // the station rig is not the map's frame
 
             return new Node
             {
@@ -413,8 +437,8 @@ namespace Sleeptalker.Sleeper2
                 CamFocus = root.Find("Location Contents/Cam Focus"),
                 // The map-axis angle: Y/Z plane around the rig center (the hub is
                 // a vertical arc — live sweep + marker geometry, 2026-07-31).
-                Azimuth = center != null
-                    ? Mathf.Atan2(pos.y - center.position.y, pos.z - center.position.z) * Mathf.Rad2Deg
+                Azimuth = center.HasValue
+                    ? Mathf.Atan2(pos.y - center.Value.y, pos.z - center.Value.z) * Mathf.Rad2Deg
                     : 0f,
                 IsHere = occupied,
             };
