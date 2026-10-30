@@ -120,6 +120,10 @@ namespace Sleeptalker.Sleeper2
             // Class select (owner design): Up/Down walk the class card rows with a
             // confirm-button handoff at the end; Left/Right drive the carousel FSM's
             // own swap events; Enter inside the table jumps to confirm first.
+            // Difficulty screen (2026-10-30): a fixed list — tutorials, the three
+            // difficulties, confirm, back — instead of the spatial walk.
+            if (DifficultyTable.HandleKeys()) return;
+
             if (ClassSelect.Active())
             {
                 if (Input.GetKeyDown(KeyCode.LeftArrow)) { ClassSelect.Swap(-1); return; }

@@ -141,6 +141,7 @@ namespace Sleeptalker
             ArrivalWatch.Tick();
             CreditsWatch.Tick();
             CrewSelectTable.Tick();
+            DifficultyTable.Tick();
             ItemWatch.Tick();
             JournalTable.Tick();
             DialogueColumn.Tick();
