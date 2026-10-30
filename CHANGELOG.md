@@ -9,6 +9,42 @@ the Citizen Speaker fork.
 
 ## Unreleased
 
+### Crew selection as a table
+- The map's crew window walked by the game's spatial navigation: Up from TRAVEL TO
+  CONTRACT reached Juni, Right skipped every crew member, the rig crew (Serafin) could not
+  be reached, and a repeat focus on a blocked member lost its name. Its opening read was a
+  dump of every label, sometimes with a pre-settle "NO CREW SELECTED".
+- New CrewSelectTable: Up and Down walk the drawn crew buttons in the window's own order,
+  with their group heading (LOCAL, THE RIG) on crossing, then a crew slots row, then
+  TRAVEL TO CONTRACT and BACK. A crew row reads name, status from the button FSM
+  (available, selected in slot N, locked in slot N, not available) and the stress and
+  skill chips. Enter clicks the member's own SELECT and answers with the result and the
+  slots; locked and blocked members say why instead. The window opens with "Select crew.",
+  the slots and the first row, half a second after it appears so the button FSMs have
+  settled. F1 lists the crew keys. Backspace stays the map's Back.
+- Verified live by the player on a real contract: walked Nia, Juni and Serafin, chose
+  Nia into slot 2, confirmed the crew.
+
+### Difficulty screen as a list
+- The new-game difficulty screen walked by the game's spatial navigation, jumping between
+  the three cards, TUTORIALS and CONFIRM in no fixed order. New DifficultyTable: Up and
+  Down walk TUTORIALS, SAFE, RISKY, DANGEROUS, CONFIRM DIFFICULTY and BACK. A difficulty
+  row reads its name, "Chosen." from the Difficulty Menu FSM state, and its description;
+  Enter clicks the card's own SELECT ("SAFE chosen.") or toggles tutorials ("TUTORIALS
+  OFF."). The screen opens with the chosen difficulty and the game's note that difficulty
+  can be changed any time from the pause menu. Verified live on an empty slot.
+- While the difficulty list or the crew table owns its screen, the game's own focus
+  landing there (RISKY at open, TRAVEL TO CONTRACT) is no longer read: its late read
+  talked over the first table row.
+
+### Repeatable actions
+- After an action resolves the game draws "ACTION COMPLETE" on the card while it shows
+  the outcome, even though the card takes a new die at once (its Action Controller rests
+  in Positive/Neutral/Negative Outcome, each with DiceSlotted -> Reset). Players heard
+  "complete", left the location and re-entered it to try again. The row now adds "Enter
+  to do it again." when the controller's state accepts a die; Temp Complete and Action
+  Completed (no DiceSlotted) stay without the hint.
+
 ### "New" on visited locations
 - Station and rig rows said "New" for every location on camera, also long after a
   visit. The New Shine object stays active on every drawn marker; the game shows or hides
