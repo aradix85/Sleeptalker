@@ -350,6 +350,16 @@ namespace Sleeptalker.Sleeper2
                 if (!string.IsNullOrEmpty(label)) sb.Append(' ').Append(label).Append('.');
             }
 
+            sb.Append(CrewChips(button));
+            return sb.ToString();
+        }
+
+        /// <summary>The stress and skill chips a crew button draws, each a
+        /// leading-space sentence (" Stress 2 of 6. Intuit plus 1."); empty when
+        /// none. Shared by the focus read and the crew table (2026-10-30).</summary>
+        internal static string CrewChips(Transform button)
+        {
+            var sb = new System.Text.StringBuilder();
             // Stress from the button's OWN bar variant (same family as the
             // contract panels; caps byte-true per variant name).
             foreach (var t in button.GetComponentsInChildren<Transform>(false))
@@ -398,7 +408,7 @@ namespace Sleeptalker.Sleeper2
             return sb.ToString();
         }
 
-        private static string RenderedChildText(Transform root, string childName)
+        internal static string RenderedChildText(Transform root, string childName)
         {
             foreach (var t in root.GetComponentsInChildren<Transform>(false))
             {

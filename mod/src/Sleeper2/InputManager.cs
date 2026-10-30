@@ -202,6 +202,9 @@ namespace Sleeptalker.Sleeper2
             // (spec: before native fallthrough). Native forced-focus sub-windows
             // (Travel Confirm, Crew, Leave Contract, blockers) stand it down via
             // the Active gate — their focus reads carry them (D8).
+            // Crew selection window (2026-10-30): a fixed-order table instead of
+            // the game's spatial walk, which skipped and stranded crew rows.
+            if (CrewSelectTable.HandleKeys()) return;
             if (MapTable.Active() && MapTable.HandleKeys()) return;
             if ((Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)
                  || Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.DownArrow)

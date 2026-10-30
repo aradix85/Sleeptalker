@@ -45,6 +45,20 @@ the Citizen Speaker fork.
   pre-rolled values; verified live that the assist actions leave them untouched there.
   The crew actions themselves await their first live contract.
 
+### Crew selection as a table
+- The map's crew window walked by the game's spatial navigation: Up from TRAVEL TO
+  CONTRACT reached Juni, Right skipped every crew member, the rig crew (Serafin) could not
+  be reached, and a repeat focus on a blocked member lost its name. Its opening read was a
+  dump of every label, sometimes with a pre-settle "NO CREW SELECTED".
+- New CrewSelectTable: Up and Down walk the drawn crew buttons in the window's own order,
+  with their group heading (LOCAL, THE RIG) on crossing, then a crew slots row, then
+  TRAVEL TO CONTRACT and BACK. A crew row reads name, status from the button FSM
+  (available, selected in slot N, locked in slot N, not available) and the stress and
+  skill chips. Enter clicks the member's own SELECT and answers with the result and the
+  slots; locked and blocked members say why instead. The window opens with "Select crew.",
+  the slots and the first row, half a second after it appears so the button FSMs have
+  settled. F1 lists the crew keys. Backspace stays the map's Back.
+
 ### Repeatable actions
 - After an action resolves the game draws "ACTION COMPLETE" on the card while it shows
   the outcome, even though the card takes a new die at once (its Action Controller rests
