@@ -300,6 +300,7 @@ namespace Sleeptalker.Scaffold
                 { "assist.off", "off" },
                 { "assist.now", "now" },
                 { "assist.min-explain", "New rolls land between {n} and 6." },
+                { "assist.min-saved", "Saved. Left and Right change it." },
                 { "assist.row.minimum", "Minimum die roll" },
                 { "assist.row.raise", "Raise every die to 6." },
                 { "assist.row.reroll", "Reroll every die." },

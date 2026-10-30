@@ -15,8 +15,9 @@ the Citizen Speaker fork.
 - F5 opens an assist menu in the help sheet's table grammar: Up and Down walk the rows,
   Enter performs a row, Space re-reads it, F5 or Backspace closes. It needs a loaded game
   (not on the title, the pause menu, a cycle transition or travel).
-- Row 1, **Minimum die roll** (off, 2 to 6; Left/Right or Enter change it, saved as
-  `[Assist] MinimumDieRoll` in the config). Every die rolls through a "Roll" or
+- Row 1, **Minimum die roll** (off, 2 to 6; Left/Right change it, Enter confirms; saved
+  as `[Assist] MinimumDieRoll` in the config). Enter used to step the value too, so
+  confirming a 6 wrapped it back to off (first ride, 2026-10-30). Every die rolls through a "Roll" or
   "Safe Roll" state whose RandomEvent picks one of six transitions named "1" to "6". A
   Harmony postfix on `RandomEvent.GetRandomEvent` swaps a face below the minimum for a
   uniform pick among the faces at or above it, so the game still runs its own face
@@ -31,6 +32,8 @@ the Citizen Speaker fork.
   Dice actions refuse while the die picker or a slotted die owns the dice, then read the
   settled dice back. Fuel and supplies are capped by the rig's stowage, so their answer
   comes a beat later from the value that actually landed ("No room for more. Still 5.").
+- When the menu cannot open it says why: paused ("Press Escape to resume first"), between
+  cycles, or travelling. It used to say "needs a loaded game" for all of them.
 - F5 is handled before the gamepad-mode switch, so the first F5 after a load is no longer
   talked over by a fresh focus read. Opening F5 over the F1 sheet retires the sheet.
 - Crew dice: the minimum die roll covers them (their FSM rolls through the same

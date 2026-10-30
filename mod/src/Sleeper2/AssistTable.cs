@@ -103,14 +103,12 @@ namespace Sleeptalker.Sleeper2
             return false;
         }
 
-        /// <summary>Off, 2, 3, 4, 5, 6 — Enter wraps, Left/Right clamp.</summary>
-        private static void StepMinimum(int delta, bool wrap = false)
+        /// <summary>Off, 2, 3, 4, 5, 6 — Left/Right step and clamp at the ends.</summary>
+        private static void StepMinimum(int delta)
         {
             int cur = DiceAssist.Minimum;
             int idx = cur == DiceAssist.Off ? 0 : cur - 1; // off=0, 2..6 -> 1..5
-            idx += delta;
-            if (wrap) idx = (idx + 6) % 6;
-            else idx = Mathf.Clamp(idx, 0, 5);
+            idx = Mathf.Clamp(idx + delta, 0, 5);
             DiceAssist.Minimum = idx == 0 ? DiceAssist.Off : idx + 1;
             string line = RowRead(0);
             if (DiceAssist.Minimum != DiceAssist.Off)
@@ -123,7 +121,12 @@ namespace Sleeptalker.Sleeper2
             string result;
             switch (Rows[row])
             {
-                case Row.Minimum: StepMinimum(1, wrap: true); return;
+                // Enter confirms, never changes (ride 2026-10-30: Enter after
+                // stepping to 6 wrapped the setting back to off). The value is
+                // already saved by the Left/Right that set it.
+                case Row.Minimum:
+                    Table.Say(RowRead(0) + " " + Lex.T("assist.min-saved"));
+                    return;
                 case Row.Raise: result = DiceAssist.RaiseAll(); break;
                 case Row.Reroll: result = DiceAssist.RerollAll(); break;
                 case Row.Repair: result = DiceAssist.RepairAll(); break;
