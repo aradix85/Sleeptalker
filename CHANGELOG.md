@@ -33,6 +33,14 @@ the Citizen Speaker fork.
   comes a beat later from the value that actually landed ("No room for more. Still 5.").
 - F5 is handled before the gamepad-mode switch, so the first F5 after a load is no longer
   talked over by a fresh focus read. Opening F5 over the F1 sheet retires the sheet.
+- Crew dice: the minimum die roll covers them (their FSM rolls through the same
+  "Roll" RandomEvent over "1" to "6"), and "raise every die to 6" and "reroll every
+  die" include them while a crew panel is rendered. Their FSM is simpler (decoded live):
+  global Check Variables reloads from the Lua value `Crew<m>Die<s>`, global RollDice
+  rolls; no health, no stress check, no Reroll event. RollDice also leaves Used, so only
+  Idle crew dice are sent it. Outside a contract the persistent crew dice hold stale
+  pre-rolled values; verified live that the assist actions leave them untouched there.
+  The crew actions themselves await their first live contract.
 
 ### "New" on visited locations
 - Station and rig rows said "New" for every location on camera, also long after a

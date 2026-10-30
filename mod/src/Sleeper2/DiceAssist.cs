@@ -96,10 +96,38 @@ namespace Sleeptalker.Sleeper2
             return go.GetComponent<PlayMakerFSM>();
         }
 
-        private static string LuaName(PlayMakerFSM fsm, int n)
+        private static string LuaName(PlayMakerFSM fsm, string fallback)
         {
             var v = fsm.FsmVariables.GetFsmString("Die Name");
-            return v != null && !string.IsNullOrEmpty(v.Value) ? v.Value : "Die" + n;
+            return v != null && !string.IsNullOrEmpty(v.Value) ? v.Value : fallback;
+        }
+
+        // ---------- Crew dice ----------
+        // A simpler FSM (decoded live 2026-10-30): global Check Variables -> Load
+        // From Save -> Die Filter on the Lua value (Crew<m>Die<s>), global
+        // RollDice -> Roll (RandomEvent over 1..6) -> face state, which writes
+        // the Lua value. No health, no stress check, no Reroll event. RollDice
+        // leaves Used too, so only Idle dice are ever sent it. Gated on the
+        // RENDERED panel (DiceFlow's rule): outside a contract the persistent
+        // crew dice hold stale pre-rolled values that must stay untouched.
+
+        private static PlayMakerFSM CrewFsm(int member, int slot)
+        {
+            if (CrewPanel.PanelOf(member) == null) return null;
+            var go = GameObject.Find("Letterbox Canvas/Crew UI/Crew Member " + member
+                + "/Display/Crew Dice/Crew - Dice Slot " + slot + "/Die");
+            if (go == null || !go.activeInHierarchy) return null;
+            return go.GetComponent<PlayMakerFSM>();
+        }
+
+        private static IEnumerable<PlayMakerFSM> CrewDice()
+        {
+            for (int m = 1; m <= 2; m++)
+                for (int s = 1; s <= 2; s++)
+                {
+                    var fsm = CrewFsm(m, s);
+                    if (fsm != null) yield return fsm;
+                }
         }
 
         /// <summary>True while the die picker or a slotted die owns the dice:
@@ -114,13 +142,33 @@ namespace Sleeptalker.Sleeper2
                 string s = fsm.ActiveStateName ?? "";
                 if (s != "Idle" && s != "Used" && s != "Broken") return true;
             }
+            foreach (var fsm in CrewDice())
+            {
+                string s = fsm.ActiveStateName ?? "";
+                if (s != "Idle" && s != "Used") return true;
+            }
             return false;
         }
 
         public static bool AnyDice()
         {
             for (int n = 1; n <= 5; n++) if (DieFsm(n) != null) return true;
+            foreach (var _ in CrewDice()) return true;
             return false;
+        }
+
+        /// <summary>Lua value 1..5 on an Idle die becomes 6 and the die reloads
+        /// through its own Check Variables (0 spent, 6 already, 9 glitched).</summary>
+        private static bool RaiseOne(PlayMakerFSM fsm, string fallbackName)
+        {
+            if (fsm == null || fsm.ActiveStateName != "Idle") return false;
+            string lua = LuaName(fsm, fallbackName);
+            if (string.IsNullOrEmpty(lua)) return false;
+            float v = DialogueLua.GetVariable(lua).asFloat;
+            if (v < 1f || v > 5f) return false;
+            DialogueLua.SetVariable(lua, 6);
+            fsm.SendEvent("Check Variables");
+            return true;
         }
 
         /// <summary>Every usable player die below 6 becomes 6 (the debug menu's
@@ -131,16 +179,9 @@ namespace Sleeptalker.Sleeper2
             if (DiceBusy()) return Lex.T("assist.dice-busy");
             int raised = 0;
             for (int n = 1; n <= 5; n++)
-            {
-                var fsm = DieFsm(n);
-                if (fsm == null || fsm.ActiveStateName != "Idle") continue;
-                string lua = LuaName(fsm, n);
-                float v = DialogueLua.GetVariable(lua).asFloat;
-                if (v < 1f || v > 5f) continue; // 0 spent, 6 already, 9 glitched
-                DialogueLua.SetVariable(lua, 6);
-                fsm.SendEvent("Check Variables");
-                raised++;
-            }
+                if (RaiseOne(DieFsm(n), "Die" + n)) raised++;
+            foreach (var fsm in CrewDice())
+                if (RaiseOne(fsm, null)) raised++;
             if (raised == 0) return Lex.T("assist.raise-none");
             QueueDiceRead();
             return Lex.T("assist.raised");
@@ -158,6 +199,12 @@ namespace Sleeptalker.Sleeper2
                 var fsm = DieFsm(n);
                 if (fsm == null || fsm.ActiveStateName != "Idle") continue;
                 fsm.SendEvent("Reroll");
+                sent++;
+            }
+            foreach (var fsm in CrewDice())
+            {
+                if (fsm.ActiveStateName != "Idle") continue;
+                fsm.SendEvent("RollDice"); // the crew die's own roll entry
                 sent++;
             }
             if (sent == 0) return Lex.T("assist.raise-none");
@@ -265,6 +312,14 @@ namespace Sleeptalker.Sleeper2
                 if (sb.Length > 0) sb.Append(' ');
                 sb.Append(line);
             }
+            for (int m = 1; m <= 2; m++)
+                for (int s = 1; s <= 2; s++)
+                {
+                    string line = DiceFlow.CrewDieLine(m, s); // null unless rendered
+                    if (line == null) continue;
+                    if (sb.Length > 0) sb.Append(' ');
+                    sb.Append(line);
+                }
             if (sb.Length > 0) SpeechService.Say(sb.ToString(), Priority.Queued, "assist");
         }
     }

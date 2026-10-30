@@ -85,10 +85,12 @@ lowest difficulty. The assist menu exists so a player can still finish the
 story.
 
 F5 opens the menu. Its first row sets a **minimum die roll** (off, or 2 to
-6): every roll from then on lands between that value and 6, and the game
-still runs its own stress check on the result. The other rows are the effects
-of the developers' own hidden debug menu: raise every die to 6, reroll every
-die, repair all dice, fill energy, lower stress, add cryo, fuel or supplies.
+6): every roll from then on lands between that value and 6, crew dice
+included, and the game still runs its own stress check on the result. The
+other rows are the effects of the developers' own hidden debug menu: raise
+every die to 6 and reroll every die (both include crew dice during a
+contract), repair all dice, fill energy, lower stress, add cryo, fuel or
+supplies.
 Up and Down walk the rows, Enter performs a row, F5 or Backspace closes the
 menu. The minimum is saved as `MinimumDieRoll` under `[Assist]` in
 `BepInEx/config/com.sleeptalker.mod.cfg`.
