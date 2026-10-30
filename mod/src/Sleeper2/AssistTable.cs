@@ -46,21 +46,28 @@ namespace Sleeptalker.Sleeper2
             Table.Commit = (row, col) => Activate(row);
         }
 
-        /// <summary>The menu needs a loaded game: no title, no pause overlay,
-        /// no transition between cycles.</summary>
-        private static bool Available()
+        /// <summary>Null when the menu can open; otherwise why not, in words the
+        /// player can act on (ride 2026-10-30: under the pause overlay it said
+        /// "needs a loaded game", which sent the player looking for a problem).</summary>
+        private static string Unavailable()
         {
-            var m = ModeModel.Current();
-            return m != Mode.Title && m != Mode.Pause && m != Mode.CycleTransition
-                && m != Mode.Travel;
+            switch (ModeModel.Current())
+            {
+                case Mode.Title: return Lex.T("assist.unavailable");
+                case Mode.Pause: return Lex.T("assist.unavailable-pause");
+                case Mode.CycleTransition: return Lex.T("assist.unavailable-cycle");
+                case Mode.Travel: return Lex.T("assist.unavailable-travel");
+                default: return null;
+            }
         }
 
         public static void Toggle()
         {
             if (Open) { Close(); return; }
-            if (!Available())
+            string why = Unavailable();
+            if (why != null)
             {
-                SpeechService.Say(Lex.T("assist.unavailable"), Priority.Immediate, "assist");
+                SpeechService.Say(why, Priority.Immediate, "assist");
                 return;
             }
             _mode = ModeModel.Current();
