@@ -9,7 +9,9 @@ the Citizen Speaker fork.
 
 ## Unreleased
 
-### Assist menu (F5), version 0.10.0
+### Assist menu with cheats (F5), version 0.10.0
+- **Contains cheats.** Optional and inert until used: the minimum die roll defaults to
+  off, and nothing changes unless the player presses F5 and performs a row.
 - F5 opens an assist menu in the help sheet's table grammar: Up and Down walk the rows,
   Enter performs a row, Space re-reads it, F5 or Backspace closes. It needs a loaded game
   (not on the title, the pause menu, a cycle transition or travel).
