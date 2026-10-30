@@ -9,6 +9,49 @@ the Citizen Speaker fork.
 
 ## Unreleased
 
+### Twin locations
+- A location can exist as two variants with the same name at the same position (contract
+  Darkside: "Abandoned Unit" and "Abandoned Unit 2", the hideout, swapped by
+  ANKHITAVISIT). Both were rows; Enter on the undrawn one held until "Still moving, press
+  Enter again." forever. Twins now fold into one row that prefers the drawn variant, and
+  Enter presses whichever variant the game draws, also while a held Enter waits.
+
+### Waking inside a location
+- A location card can end the cycle (END CYCLE in the Darkside hideout). The game then
+  wakes the player INSIDE that location: the Cycle Controller stores it as Home Actions,
+  hides it and the Leave Button for the cycle, and its "Actions On + Save on next leave"
+  state switches both back on, but leaves Action View? false. The mod read the station
+  instead, so the player heard station rows, Backspace never pressed Leave, and the
+  location stayed open underneath: its Location Button in Location Active, the UI Camera
+  and Station Orbital Control off, its dial in Selected. No other location could draw or
+  open; the old Abandoned Unit variant stayed on top of the hideout that replaced it.
+- The Leave Button global is now the mode model's sign of an open location, and the
+  location table falls back to the open location's own group (named by its Location
+  Button in Location Active) when the render walk misses it. After such a cycle the
+  player hears the location's cards and Backspace leaves it the game's own way.
+
+### Enter on the station opened the wrong location
+- Station rows are sorted by their angle around the rig centre, and both ends of that
+  angle moved with the camera: the marker is billboard-displaced and tilts toward it, and
+  Focus Body rides the camera's scroll (z 192.7 to -601.1 over two rows). Close
+  neighbours swapped order between rebuilds: at Solheim OLD RELAY and OLD FABRICATOR went
+  from 102.3/100.7 to 97.0/97.5 after one pan, so the row the player had just heard
+  pointed at the other node and Enter opened OLD FABRICATOR. Rows are now measured from
+  each location's authored root around a centre frozen once per scene, so the order holds
+  for the visit. Verified live: Enter on OLD RELAY opens OLD RELAY (DISENGAGE SYSTEMS).
+- Ruled out on the way, live: the game does not submit its own selection on a keyboard
+  Enter (row SUNCATCHERS, selection THE RIG, Enter opened SUNCATCHERS), so no input gate
+  was needed.
+
+### Conversations over the Drive Log
+- A conversation that opens while the Drive Log is open (Kadet at Bliss's Bay) left the
+  game's selection on the log's quest buttons: arrows walked "MAKE REPAIRS", Enter did
+  nothing, only the number keys still answered, and J was dead in conversation mode. Now an
+  arrow or Enter whose selection sits outside the dialogue UI first lands on what the
+  conversation waits on (the first response, or CONTINUE). Enter on a lone CONTINUE also
+  advances; a response menu never picks on that anchoring press. J closes a Drive Log left
+  open under a conversation. The pause menu keeps its focus.
+
 ### Crew selection as a table
 - The map's crew window walked by the game's spatial navigation: Up from TRAVEL TO
   CONTRACT reached Juni, Right skipped every crew member, the rig crew (Serafin) could not
