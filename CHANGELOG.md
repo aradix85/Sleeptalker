@@ -45,6 +45,18 @@ the Citizen Speaker fork.
   pre-rolled values; verified live that the assist actions leave them untouched there.
   The crew actions themselves await their first live contract.
 
+### Difficulty screen as a list
+- The new-game difficulty screen walked by the game's spatial navigation, jumping between
+  the three cards, TUTORIALS and CONFIRM in no fixed order. New DifficultyTable: Up and
+  Down walk TUTORIALS, SAFE, RISKY, DANGEROUS, CONFIRM DIFFICULTY and BACK. A difficulty
+  row reads its name, "Chosen." from the Difficulty Menu FSM state, and its description;
+  Enter clicks the card's own SELECT ("SAFE chosen.") or toggles tutorials ("TUTORIALS
+  OFF."). The screen opens with the chosen difficulty and the game's note that difficulty
+  can be changed any time from the pause menu. Verified live on an empty slot.
+- While the difficulty list or the crew table owns its screen, the game's own focus
+  landing there (RISKY at open, TRAVEL TO CONTRACT) is no longer read: its late read
+  talked over the first table row.
+
 ### Crew selection as a table
 - The map's crew window walked by the game's spatial navigation: Up from TRAVEL TO
   CONTRACT reached Juni, Right skipped every crew member, the rig crew (Serafin) could not

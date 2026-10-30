@@ -291,6 +291,13 @@ namespace Sleeptalker.Sleeper2
         /// offline; any miss falls soft to the default read.</summary>
         private static string DescribeFocused(GameObject go)
         {
+            // The list tables own these screens (2026-10-30): the game's own
+            // focus landing (RISKY at open, TRAVEL TO CONTRACT) is not where the
+            // player's cursor is, and its late read talked over the table.
+            if (go != null && DifficultyTable.Active() && Util.HasAncestor(go, "Difficulty Menu"))
+                return null;
+            if (go != null && CrewSelectTable.Active() && Util.HasAncestor(go, "Crew Window"))
+                return null;
             string crew = CrewSelectRead(go);
             if (crew != null) return crew;
             // A station node's marker button whose nameplate is not drawn read as its

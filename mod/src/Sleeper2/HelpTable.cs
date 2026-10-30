@@ -109,6 +109,9 @@ namespace Sleeptalker.Sleeper2
                 case Mode.Tutorial: key = "helpkeys.tutorial"; break;
                 case Mode.Conversation: key = "helpkeys.conversation"; break;
                 case Mode.DiceAllocation: key = "helpkeys.dice"; break;
+                case Mode.Title:
+                    key = DifficultyTable.Active() ? "helpkeys.difficulty" : "helpkeys.native";
+                    break;
                 case Mode.Map:
                     key = CrewSelectTable.Active() ? "helpkeys.crew" : "helpkeys.map";
                     break;
