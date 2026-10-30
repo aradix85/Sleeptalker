@@ -290,6 +290,7 @@ namespace Sleeptalker.Scaffold
                 { "vitals.up", "up" },
                 { "vitals.down", "down" },
                 { "vitals.of", "of" },
+                { "loc.repeatable", "Enter to do it again." },
             };
 
         private static Dictionary<string, string> _override;
