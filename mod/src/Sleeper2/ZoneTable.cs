@@ -200,7 +200,7 @@ namespace Sleeptalker.Sleeper2
                 // unambiguous flag the game's own click path reads too.
                 // So: no selection opinion at all — ask the button.
                 var refusal = CommitRefusal(button);
-                if (refusal == "zone.commit.offscreen")
+                if (refusal == "zone.commit.offscreen" || refusal == "zone.commit.busy")
                 {
                     // The camera is still on its way (the node's contents draw when
                     // the pan lands): hold the Enter and press it then, instead of
@@ -283,7 +283,9 @@ namespace Sleeptalker.Sleeper2
             }
             if (Time.unscaledTime < _heldCommitUntil) return;
             _heldCommit = null;
-            Plugin.Log.LogWarning("[Zone] held commit timed out at " + button.name + " — capture");
+            var heldFsm = button.GetComponent<PlayMakerFSM>();
+            Plugin.Log.LogWarning("[Zone] held commit timed out at " + Util.PathOf(button)
+                + " (button FSM in \"" + (heldFsm != null ? heldFsm.ActiveStateName : "?") + "\") — capture");
             Table.Say(Lex.T("zone.commit.moving"));
         }
 
@@ -362,10 +364,36 @@ namespace Sleeptalker.Sleeper2
             if (button == null) return "zone.commit.unselectable";
             if (!button.activeInHierarchy) return "zone.commit.offscreen";
             var sel = button.GetComponent<UnityEngine.UI.Selectable>();
-            if (sel == null) return null;
-            if (!sel.isActiveAndEnabled || !sel.IsInteractable())
+            if (sel != null && (!sel.isActiveAndEnabled || !sel.IsInteractable()))
                 return "zone.commit.unselectable";
+            if (!ButtonTakesClick(button)) return "zone.commit.busy";
             return null;
+        }
+
+        /// <summary>Whether the Location Button FSM would act on a click right
+        /// now (ride 2026-10-31, SUBSTRUCTURE). The Button's onClick only sends
+        /// the FSM "Clicked", and the FSM takes it in exactly three states:
+        /// Idle, MouseOn, Selected. Everywhere else the press is dropped without
+        /// a sound: Is New? (0.5 s) and New Animation on a location that just
+        /// appeared, Off Screen while the UI Camera cannot see the marker (a pan
+        /// still on its way), cooldown, and the one-second close transitions
+        /// after leaving a location. The button stays interactable throughout,
+        /// so the interactable test passed and the press vanished. Read from the
+        /// FSM itself: a button whose FSM never handles Clicked is not gated.</summary>
+        private static bool ButtonTakesClick(GameObject button)
+        {
+            var fsm = button.GetComponent<PlayMakerFSM>();
+            if (fsm == null || fsm.Fsm == null) return true;
+            var active = fsm.Fsm.ActiveState;
+            bool handlesClicks = false;
+            foreach (var state in fsm.FsmStates)
+                foreach (var t in state.Transitions)
+                    if (t.EventName == "Clicked")
+                    {
+                        handlesClicks = true;
+                        if (state == active) return true;
+                    }
+            return !handlesClicks;
         }
 
         // (AlignmentTick retired 2026-08-04 with the selection-proxy gate:

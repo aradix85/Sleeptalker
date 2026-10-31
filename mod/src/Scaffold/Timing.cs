@@ -59,7 +59,7 @@ namespace Sleeptalker.Scaffold
 
         // ---------- Station tables ----------
         public const float StationSurfaceSettle = 0.6f; // transitional mode flickers must not announce
-        public const float CommitEnableWait = 2f;       // camera-in-flight: wait for the button, refuse on timeout
+        public const float CommitEnableWait = 3f;       // camera-in-flight: wait for the button, refuse on timeout
         public const float CameraFocusMute = 1.5f;      // focus mute after a Focus Z write
         public const float PurchaseCheckDefer = 0.3f;   // deferred post-activation read (re-armed while Confirm? is up)
         public const float JournalRetryDefer = 0.2f;    // pull-out renders a beat after the heading click
