@@ -9,6 +9,22 @@ the Citizen Speaker fork.
 
 ## Unreleased
 
+### Enter on a location could vanish
+- The Location Button's onClick only sends its FSM "Clicked", and the FSM takes it in
+  three states: Idle, MouseOn and Selected. In every other state the press is dropped
+  without a sound: Is New? (0.5 s) and New Animation on a location that just appeared,
+  Off Screen while the UI Camera cannot yet see the marker (a pan still on its way),
+  cooldown, and the one-second close transitions after leaving a location. The button
+  stays interactable throughout, so the commit gate passed and Enter did nothing; the
+  player heard only the row again (SUBSTRUCTURE, a location that had just appeared).
+- The commit gate now also asks the button's FSM whether its current state handles
+  Clicked. If not, the Enter is held, like the existing camera-in-flight hold, and
+  pressed the moment the FSM can take it (hold extended from 2 to 3 seconds; a timeout
+  logs the FSM state). Buttons whose FSM never handles Clicked are not gated.
+- Verified live, A/B on the same save: Down onto SUBSTRUCTURE then Enter 4, 8, 12 and
+  16 frames later, mid-pan. With the gate: opened 4 of 4. With the gate patched out at
+  runtime: opened 0 of 4.
+
 ### Twin locations
 - A location can exist as two variants with the same name at the same position (contract
   Darkside: "Abandoned Unit" and "Abandoned Unit 2", the hideout, swapped by
