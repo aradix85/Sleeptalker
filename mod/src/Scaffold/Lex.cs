@@ -51,6 +51,7 @@ namespace Sleeptalker.Scaffold
                 { "zone.commit.unselectable", "Not selectable." },
                 { "zone.commit.offscreen", "Off screen." },
                 { "zone.commit.moving", "Still moving, press Enter again." },
+                { "zone.commit.busy", "Not ready yet, press Enter again." },
                 { "map.travelling", "Travelling." },
                 { "title.no-back", "Nothing to go back to." },
                 { "cycle.clocks", "Clocks:" },
